@@ -18,4 +18,7 @@
 * PoW
 * PoM
 * Blockchain Node
-
+### Block
+* prev block
+* curr hash
+* difficulty
