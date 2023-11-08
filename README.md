@@ -53,3 +53,5 @@
 ### Utils
 * SHA256
 * BLAKE3
+* Protobuf
+* 0MQ
