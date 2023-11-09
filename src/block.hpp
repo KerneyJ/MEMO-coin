@@ -11,6 +11,7 @@ struct BlockHeader {
     Block* prev_block;
     Blake3Hash hash;
     int difficulty;
+    uint64_t timestamp;
 };
 
 struct Block {

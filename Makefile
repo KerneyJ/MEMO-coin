@@ -17,7 +17,7 @@ CPP_SRCS=
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
-TARGETS=pow.cpp
+TARGETS=pow.cpp wallet.cpp
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG
