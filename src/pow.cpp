@@ -34,9 +34,8 @@ bool check_solution(Blake3Hash result, int difficulty) {
 Blake3Hash ProofOfWork::solve_hash(Blake3Hash prev_hash, int difficulty) {
     uint64_t nonce = 0;
     uint8_t* nonce_buf;
-    Blake3Hash base;
-    Blake3Hash solution;
-    Blake3Hash result;
+    Blake3Hash base, solution, result;
+    blake3_hasher hasher;
 
     srand(time(NULL));
     for (int i = 0; i < solution.size(); ++i) 
@@ -71,11 +70,10 @@ int main(void) {
     Blake3Hash prev_hash;
     prev_hash.fill(255);
 
-    ConsensusModel* validator = new ProofOfWork();
+    IConsensusModel* validator = new ProofOfWork();
 
-    Blake3Hash solution = validator->solve_hash(prev_hash, 10);
+    Blake3Hash solution = validator->solve_hash(prev_hash, 26);
 
-    // Print the hash as hexadecimal.
     for (int i = 0; i < solution.size(); i++) {
         printf("%02x", solution[i]);
     }

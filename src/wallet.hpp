@@ -1,10 +1,15 @@
 #include <cstdint>
 #include <string>
+#include <array>
+
+#include "defs.hpp"
+
+#pragma once
 
 struct Wallet {
-    uint8_t priv_key[32];
-    uint8_t pub_key[32];
-    uint8_t id[32];
+    SHA256Hash priv_key;
+    SHA256Hash pub_key;
+    SHA256Hash id;
 };
 
 Wallet load_wallet(std::string filepath);
