@@ -39,6 +39,10 @@ $(CPP_OBJS): %.o: $(SRC_DIR)/%.cpp
 $(C_OBJS): %.o: $(SRC_DIR)/%.c
 	$(CC) -c $< -o $(OBJ_DIR)/$@ $(CFLAGS)
 
+test:
+	g++ -lzmq -o bin/test_server zmqtest/server.cpp
+	g++ -lzmq -o bin/test_client zmqtest/client.cpp
+
 dir:
 	echo $(BLAKE_SRCS)
 	mkdir -p bin
