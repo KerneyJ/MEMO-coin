@@ -2,7 +2,7 @@ CC=gcc
 CPP=g++
 
 CFLAGS=
-CPP_FLAGS=-pthread
+CPP_FLAGS=#-pthread -lzmq
 
 BIN_DIR=bin
 OBJ_DIR=obj

@@ -20,12 +20,13 @@ int main (void)
     zmq_recv (responder, bytes.data(), 40, 0);
         
     std::error_code ec;
-    Bar deserialized_bar = alpaca::deserialize<Bar>(bytes, ec);
+    Bar my_bar = alpaca::deserialize<Bar>(bytes, ec);
+
     printf("deserialized data:\n");
-    printf("type: %d\n", deserialized_bar.type);
-    printf("foo1: (%d, %c, %s)\n", deserialized_bar.foos[0].a, deserialized_bar.foos[0].b, deserialized_bar.foos[0].c.c_str());
-    printf("foo2: (%d, %c, %s)\n", deserialized_bar.foos[1].a, deserialized_bar.foos[1].b, deserialized_bar.foos[1].c.c_str());
-    printf("foo3: (%d, %c, %s)\n", deserialized_bar.foos[2].a, deserialized_bar.foos[2].b, deserialized_bar.foos[2].c.c_str());
+    printf("type: %d\n", my_bar.type);
+    printf("foo1: (%d, %c, %s)\n", my_bar.foos[0].a, my_bar.foos[0].b, my_bar.foos[0].c.c_str());
+    printf("foo2: (%d, %c, %s)\n", my_bar.foos[1].a, my_bar.foos[1].b, my_bar.foos[1].c.c_str());
+    printf("foo3: (%d, %c, %s)\n", my_bar.foos[2].a, my_bar.foos[2].b, my_bar.foos[2].c.c_str());
     
     return 0;
 }

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <errno.h>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,7 +17,7 @@ bool check_solution(Blake3Hash result, int difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size())
-        throw "bad difficulty";
+        throw std::runtime_error("Bad difficulty.");
 
     for (int i = 0; i < difficulty; i++) {
         for(int j = 0; j < 8; ++j) {

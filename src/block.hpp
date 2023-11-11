@@ -2,8 +2,6 @@
 #include "consensus.hpp"
 #include "defs.hpp"
 
-#define BLOCK_SIZE 100
-
 struct Block;
 struct BlockHeader;
 
