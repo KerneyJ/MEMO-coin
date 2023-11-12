@@ -16,7 +16,13 @@ TxPool::~TxPool() {
 }
 
 void TxPool::add_transaction(Transaction tx) {
+    std::unique_lock<std::mutex> lock(tx_lock);
 
+    // TODO: check transaction signature
+    // if(!verify_transaction(transactions))
+    //     send error
+
+    transactions.push(tx);
 }
 
 std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
@@ -24,7 +30,7 @@ std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
     std::array<Transaction, BLOCK_SIZE> response;
 
     // TODO: very inefficient, queue with bulk pop would perform better
-    for(int i = 0; i < BLOCK_SIZE; i++) {
+    for(int i = 0; i < BLOCK_SIZE && !transactions.empty(); i++) {
         response[i] = transactions.front();
         transactions.pop();
     }
