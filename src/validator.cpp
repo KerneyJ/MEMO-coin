@@ -1,7 +1,9 @@
 #include "validator.hpp";
+#include "wallet.hpp"
 
 Validator::Validator() {
     difficulty = 1;
+    wallet = load_wallet("./confing/wallet.cfg");
 }
 
 void Validator::run() {

@@ -6,6 +6,7 @@
 #include "block.hpp"
 #include "defs.hpp"
 #include "transaction.hpp"
+#include "wallet.hpp"
 
 #pragma once
 
@@ -15,11 +16,12 @@ class Validator {
         std::string blockchain_address;
         std::string tx_pool_address;
         IConsensusModel* consensus;
-    public:
-        Validator();
-        void run();
+        Wallet wallet;
         Block create_block(Blake3Hash hash);
         int submit_block(Block block);
         BlockHeader request_block_header();
         std::array<Transaction, BLOCK_SIZE> request_txs();
+    public:
+        Validator();
+        void run();
 };

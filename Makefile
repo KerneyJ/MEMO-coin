@@ -2,7 +2,7 @@ CC=gcc
 CPP=g++
 
 CFLAGS=
-CPP_FLAGS=#-pthread -lzmq
+CPP_FLAGS=-lssl -lcrypto#-pthread -lzmq
 
 BIN_DIR=bin
 OBJ_DIR=obj
@@ -17,7 +17,7 @@ CPP_SRCS=
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
-TARGETS=pow.cpp wallet.cpp
+TARGETS=pow.cpp wallet.cpp rsa_test.cpp
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG
@@ -27,14 +27,14 @@ endif
 all: dir $(BLAKE_SRCS) $(TARGETS)
 
 $(BLAKE_SRCS):
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/blake3/$@ -o $(OBJ_DIR)/$(patsubst %.c,%.o,$(patsubst %.S,%.o,$@))
+	$(CC) -c $(SRC_DIR)/blake3/$@ -o $(OBJ_DIR)/$(patsubst %.c,%.o,$(patsubst %.S,%.o,$@)) $(CFLAGS) 
 
 $(TARGETS): $(C_OBJS) $(CPP_OBJS) $(BLAKE_SRCS)
-	$(CPP) $(CPP_FLAGS) $(SRC_DIR)/$@ -o $(BIN_DIR)/$(patsubst %.cpp,%,$@) \
-		$(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) $(addprefix $(OBJ_DIR)/,$(BLAKE_OBJS))
+	$(CPP) $(SRC_DIR)/$@ -o $(BIN_DIR)/$(patsubst %.cpp,%,$@) \
+		$(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) $(addprefix $(OBJ_DIR)/,$(BLAKE_OBJS)) $(CPP_FLAGS) 
 
 $(CPP_OBJS): %.o: $(SRC_DIR)/%.cpp 
-	$(CPP) $(CPP_FLAGS) -c $< -o $(OBJ_DIR)/$@
+	$(CPP) -c $< -o $(OBJ_DIR)/$@ $(CPP_FLAGS) 
 
 $(C_OBJS): %.o: $(SRC_DIR)/%.c
 	$(CC) -c $< -o $(OBJ_DIR)/$@ $(CFLAGS)

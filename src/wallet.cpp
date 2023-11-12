@@ -1,8 +1,37 @@
 #include "wallet.hpp"
+#include <iostream>
+#include <string>
+
+// // Overload << for SHA256Hash
+// std::ostream& operator<<(std::ostream& os, const SHA256Hash& hash) {
+//     for (auto byte : hash) {
+//         os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+//     }
+//     return os;
+// }
+// Overload >> for SHA256Hash
+std::istream& operator>>(std::istream& is, SHA256Hash& hash) {
+    // Assuming the input is in hexadecimal format
+    for (auto& byte : hash) {
+        int tmp;
+        if (is >> std::hex >> tmp) {
+            byte = static_cast<unsigned char>(tmp);
+        } else {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+    }
+    return is;
+}
+
+/* 
+The wallet literally just holds your 
+*/
+
 
 // create SHA256 pub / private key pair
 Wallet create_wallet() {
-    return {};
+    return {};  
 }
 
 // load wallet from file
@@ -21,11 +50,103 @@ Transaction create_transaction(SHA256Hash src, SHA256Hash dest, uint32_t amount)
     return {};
 }
 
+// Function to display wallet information
+void display_wallet(const Wallet& wallet) {
+    printf("Public Key: ");
+    for (auto byte : wallet.pub_key) {
+        printf("%02x", byte);
+    }
+    printf("Private Key: ");
+    for (auto byte : wallet.priv_key) {
+        printf("%02x", byte);
+    }
+}
+
+ 
 // should take some command line argument for what to run
 // options: create new wallet, get balance, create transaction
 
 int main(int argc, char** argv) {
-    printf("Hello, I'm a wallet.\n");
+    struct Wallet wallet;
+
+    while (true) {
+        std::cout << "\n\n---------------------------------\n\n";
+        std::cout << "\n\nWelcome to da crypto wallet 💰💰💰\n\n";
+        std::cout << "What would you like to do?\n";
+        std::cout << "Quit                  [0]\n";
+        std::cout << "create wallet         [1]\n";
+        std::cout << "load wallet           [2]\n";
+        std::cout << "Display wallet        [3]\n";
+        std::cout << "create transaction    [4]\n";
+        std::cout << "Query balance         [5]\n";
+        std::cout << "Your selection:        ";
+        
+        int menu_selection;
+        std::cin >> menu_selection;
+        
+        switch (menu_selection) {
+            case 0: {
+                std::cout << "Goodbye! ✌️\n";
+                return 0;
+            }
+
+            case 1: {
+                Wallet wallet = create_wallet();
+                std::cout << "\nWallet created successfully!\n";
+                display_wallet(wallet);
+                break;
+            }
+
+            case 2: {
+                // TODO
+                std::cout << "`load_wallet` not implemented.";
+                // std::cout << "Please enter the filepath to your wallet: ";
+                break;
+            }
+
+            case 3: {
+                std::cout << "Displaying your wallet...";
+                display_wallet(wallet); 
+                break;
+            }
+
+            case 4: {
+                // TODO
+
+
+                std::cout << "`create transaction` not implemented.";
+                break;
+
+                SHA256Hash dest;
+                uint32_t amount;
+                std::cout << "Creating transaction...";
+                std::cout <<"enter address of payment recipient: ";
+                std::cin >> dest;
+                std::cout <<"Enter the amount to be paid: ";
+                std::cin >> amount;
+                
+                // create the transaction
+                // TODO
+                Transaction mew_transaction;
+                
+                //Display the transaction;
+                std::cout << "Submit tramsaction?";
+
+            }
+
+            case 5: {
+                std::cout << "query_balance() not implemented";
+                // int balance = query_balance();
+                // std::cout << "Your balance is: " << balance << std::endl;
+                break;
+            }
+            
+
+            default: {
+                std::cout << "Invalid choice. Please try again \n";
+            }
+        }
+    }
 
     return 0;
 }
