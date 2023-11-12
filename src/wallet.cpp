@@ -2,6 +2,28 @@
 #include <iostream>
 #include <string>
 
+// // Overload << for SHA256Hash
+// std::ostream& operator<<(std::ostream& os, const SHA256Hash& hash) {
+//     for (auto byte : hash) {
+//         os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+//     }
+//     return os;
+// }
+// Overload >> for SHA256Hash
+std::istream& operator>>(std::istream& is, SHA256Hash& hash) {
+    // Assuming the input is in hexadecimal format
+    for (auto& byte : hash) {
+        int tmp;
+        if (is >> std::hex >> tmp) {
+            byte = static_cast<unsigned char>(tmp);
+        } else {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+    }
+    return is;
+}
+
 /* 
 The wallet literally just holds your 
 */
@@ -30,8 +52,14 @@ Transaction create_transaction(SHA256Hash src, SHA256Hash dest, uint32_t amount)
 
 // Function to display wallet information
 void display_wallet(const Wallet& wallet) {
-    std::cout << "Public Key: " << wallet.pub_key << std::endl;
-    std::cout << "Private Key: " << wallet.priv_key << std::endl;
+    printf("Public Key: ");
+    for (auto byte : wallet.pub_key) {
+        printf("%02x", byte);
+    }
+    printf("Private Key: ");
+    for (auto byte : wallet.priv_key) {
+        printf("%02x", byte);
+    }
 }
 
  
@@ -42,22 +70,23 @@ int main(int argc, char** argv) {
     struct Wallet wallet;
 
     while (true) {
-        std::cout << "Welcome to da crypto wallet 💰💰💰";
+        std::cout << "\n\n---------------------------------\n\n";
+        std::cout << "\n\nWelcome to da crypto wallet 💰💰💰\n\n";
         std::cout << "What would you like to do?\n";
-        std::cout << "Quit [0]";
-        std::cout << "create wallet [1]";
-        std::cout << "load wallet [2]";
-        std::cout << "Display wallet [3]";
-        std::cout << "create transaction [4]";
-        std::cout << "Query balance [5]\n";
-        std::cout << "Your selection: ";
+        std::cout << "Quit                  [0]\n";
+        std::cout << "create wallet         [1]\n";
+        std::cout << "load wallet           [2]\n";
+        std::cout << "Display wallet        [3]\n";
+        std::cout << "create transaction    [4]\n";
+        std::cout << "Query balance         [5]\n";
+        std::cout << "Your selection:        ";
         
-        char menu_selection;
+        int menu_selection;
         std::cin >> menu_selection;
         
         switch (menu_selection) {
             case 0: {
-                std::cout << "Goodbye! ✌️";
+                std::cout << "Goodbye! ✌️\n";
                 return 0;
             }
 
@@ -106,8 +135,9 @@ int main(int argc, char** argv) {
             }
 
             case 5: {
-                int balance = query_balance();
-                std::cout << "Your balance is: " << balance << std::end1;
+                std::cout << "query_balance() not implemented";
+                // int balance = query_balance();
+                // std::cout << "Your balance is: " << balance << std::endl;
                 break;
             }
             
