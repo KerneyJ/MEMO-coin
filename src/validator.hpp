@@ -16,8 +16,10 @@ class Validator {
         std::string tx_pool_address;
         IConsensusModel* consensus;
     public:
+        Validator();
+        void run();
         Block create_block(Blake3Hash hash);
-        int submit_block();
-        int request_block_header();
+        int submit_block(Block block);
+        BlockHeader request_block_header();
         std::array<Transaction, BLOCK_SIZE> request_txs();
 };
