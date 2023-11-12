@@ -1,8 +1,15 @@
 #include "wallet.hpp"
+#include <iostream>
+#include <string>
+
+/* 
+The wallet literally just holds your 
+*/
+
 
 // create SHA256 pub / private key pair
 Wallet create_wallet() {
-    return {};
+    return {};  
 }
 
 // load wallet from file
@@ -21,11 +28,95 @@ Transaction create_transaction(SHA256Hash src, SHA256Hash dest, uint32_t amount)
     return {};
 }
 
+// Function to display wallet information
+void display_wallet(const Wallet& wallet) {
+    std::cout << "Public Key: " << wallet.pub_key << std::endl;
+    std::cout << "Private Key: " << wallet.priv_key << std::endl;
+}
+
+ 
 // should take some command line argument for what to run
 // options: create new wallet, get balance, create transaction
 
 int main(int argc, char** argv) {
-    printf("Hello, I'm a wallet.\n");
+    struct Wallet wallet;
+
+    while (true) {
+        std::cout << "Welcome to da crypto wallet 💰💰💰";
+        std::cout << "What would you like to do?\n";
+        std::cout << "Quit [0]";
+        std::cout << "create wallet [1]";
+        std::cout << "load wallet [2]";
+        std::cout << "Display wallet [3]";
+        std::cout << "create transaction [4]";
+        std::cout << "Query balance [5]\n";
+        std::cout << "Your selection: ";
+        
+        char menu_selection;
+        std::cin >> menu_selection;
+        
+        switch (menu_selection) {
+            case 0: {
+                std::cout << "Goodbye! ✌️";
+                return 0;
+            }
+
+            case 1: {
+                Wallet wallet = create_wallet();
+                std::cout << "\nWallet created successfully!\n";
+                display_wallet(wallet);
+                break;
+            }
+
+            case 2: {
+                // TODO
+                std::cout << "`load_wallet` not implemented.";
+                // std::cout << "Please enter the filepath to your wallet: ";
+                break;
+            }
+
+            case 3: {
+                std::cout << "Displaying your wallet...";
+                display_wallet(wallet); 
+                break;
+            }
+
+            case 4: {
+                // TODO
+
+
+                std::cout << "`create transaction` not implemented.";
+                break;
+
+                SHA256Hash dest;
+                uint32_t amount;
+                std::cout << "Creating transaction...";
+                std::cout <<"enter address of payment recipient: ";
+                std::cin >> dest;
+                std::cout <<"Enter the amount to be paid: ";
+                std::cin >> amount;
+                
+                // create the transaction
+                // TODO
+                Transaction mew_transaction;
+                
+                //Display the transaction;
+                std::cout << "Submit tramsaction?";
+
+            }
+
+            case 5: {
+                int balance = query_balance();
+                std::cout << "Your balance is: " << balance << std::end1;
+                break;
+            }
+            
+
+            default: {
+                std::cout << "Invalid choice. Please try again \n";
+            }
+        }
+    }
 
     return 0;
 }
