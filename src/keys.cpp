@@ -10,8 +10,7 @@
 #include <string>
 #include <vector>
 
-typedef std::array<uint8_t, 32> Ed25519Key;
-typedef std::array<uint8_t, 64> Ed25519Signature;
+#include "keys.hpp"
 
 void gen_keys_ed25519(Ed25519Key &pub_key, Ed25519Key &priv_key) {
     size_t pub_size = pub_key.size();
