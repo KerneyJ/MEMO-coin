@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
             }
 
             case 1: {
-                Wallet wallet = create_wallet();
+                // Wallet wallet = create_wallet();
                 std::cout << "\nWallet created successfully!\n";
                 display_wallet(wallet);
                 break;
