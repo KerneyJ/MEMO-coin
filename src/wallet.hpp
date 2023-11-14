@@ -14,8 +14,8 @@ struct Wallet {
 };
 
 Wallet create_wallet();
-Wallet load_wallet(std::string filepath);
-void store_wallet(std::string filepath, Wallet wallet);
+Wallet load_wallet(const std::string& filepath);
+void store_wallet(const std::string& filepath, const Wallet& wallet);
 Transaction create_transaction(Ed25519Key src, Ed25519Key dest, uint32_t amount); 
 
 // TODO: later when we have other nodes
