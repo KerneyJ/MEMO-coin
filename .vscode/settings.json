@@ -68,6 +68,11 @@
         "random": "cpp",
         "utility": "cpp",
         "stop_token": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "complex": "cpp",
+        "deque": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "*.tcc": "cpp"
     }
 }

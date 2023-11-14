@@ -11,6 +11,7 @@
 #include "wallet.hpp"
 #include "keys.hpp"
 
+#include <fstream>
 
 using SHA256Hash = std::array<unsigned char, 32>;
 // // Overload << for SHA256Hash
@@ -47,9 +48,24 @@ Wallet load_wallet(std::string filepath) {
     return {};
 }
 
-// write wallet to file
-void store_wallet(std::string filepath, Wallet wallet) {
+// Function to write a wallet to a file
+void store_wallet(const std::string& filepath, const Wallet& wallet) {
+    // Open the file for writing in binary mode
+    std::ofstream file(filepath, std::ios::binary);
 
+    if (file.is_open()) {
+        // Write the private key to the file
+        file.write(reinterpret_cast<const char*>(wallet.priv_key.data()), wallet.priv_key.size());
+
+        // Write the public key to the file
+        file.write(reinterpret_cast<const char*>(wallet.pub_key.data()), wallet.pub_key.size());
+
+        // Close the file
+        file.close();
+        std::cout << "Wallet stored successfully." << std::endl;
+    } else {
+        std::cerr << "Error opening file: " << filepath << std::endl;
+    }
 }
 
 // signature is generated in create_transaction, it should sign all of the other fields in the transaction struct
@@ -110,6 +126,13 @@ int main(int argc, char** argv) {
                 Wallet wallet = create_wallet();
                 std::cout << "\nWallet created successfully!\n";
                 display_wallet(wallet);
+                std::cout << "\nInput file path to save file to path: ";
+                
+                // Use std::getline to get a file path that may contain spaces
+                std::string filePath;
+                std::getline(std::cin, filePath);
+
+                std::cout << "You entered: " << filePath << std::endl;
                 break;
             }
 
