@@ -5,9 +5,10 @@
 #pragma once
 
 struct Transaction {
-    SHA256Hash src;
-    SHA256Hash dest;
-    SHA256Hash signature;
+    Ed25519Key src;
+    Ed25519Key dest;
+    Ed25519Signature signature;
     uint32_t id;
     uint32_t amount;
+    uint64_t timestamp;
 };

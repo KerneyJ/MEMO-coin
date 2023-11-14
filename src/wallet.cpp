@@ -1,20 +1,15 @@
-#include "wallet.hpp"
 #include <iostream>
 #include <string>
-#include <openssl/rand.h>
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
 #include <array>
 #include <iomanip> 
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/rsa.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
+
+#include "defs.hpp"
+#include "wallet.hpp"
+#include "keys.hpp"
 
 
 using SHA256Hash = std::array<unsigned char, 32>;
@@ -40,10 +35,12 @@ std::istream& operator>>(std::istream& is, SHA256Hash& hash) {
     return is;
 }
 
-/* 
-The wallet literally just holds your 
-*/
-
+Wallet create_wallet() {
+    Ed25519Key pub_key, priv_key;
+    gen_keys_ed25519(pub_key, priv_key);
+    
+    return { priv_key, pub_key };
+}
 
 // load wallet from file
 Wallet load_wallet(std::string filepath) {
@@ -110,7 +107,7 @@ int main(int argc, char** argv) {
             }
 
             case 1: {
-                // Wallet wallet = create_wallet();
+                Wallet wallet = create_wallet();
                 std::cout << "\nWallet created successfully!\n";
                 display_wallet(wallet);
                 break;

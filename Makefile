@@ -13,11 +13,11 @@ BLAKE_SRCS=blake3.c blake3_dispatch.c blake3_portable.c blake3_sse2_x86-64_unix.
 BLAKE_OBJS=$(patsubst %.c,%.o,$(patsubst %.S,%.o,$(BLAKE_SRCS)))
 
 C_SRCS=
-CPP_SRCS=
+CPP_SRCS=keys.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
-TARGETS=pow.cpp wallet.cpp keys.cpp
+TARGETS=pow.cpp wallet.cpp
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG

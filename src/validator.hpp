@@ -9,6 +9,7 @@
 #include "transaction.hpp"
 #include "wallet.hpp"
 #include "address_list.hpp"
+#include "defs.hpp"
 
 #pragma once
 

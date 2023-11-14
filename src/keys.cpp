@@ -63,45 +63,45 @@ bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, st
     return is_valid;
 }
 
-int main(int argc, char* argv[]) 
-{
-    Ed25519Key pub_key;
-    Ed25519Key priv_key;
-    Ed25519Signature signature;
+// int main(int argc, char* argv[]) 
+// {
+//     Ed25519Key pub_key;
+//     Ed25519Key priv_key;
+//     Ed25519Signature signature;
 
-    std::string message = "lets sign this dude!";
-    std::string not_my_message = "i took her to the penthouse then i 😨 it.";
-    // std::string message = "this is my very sensitive data. please do not tell anybody. Bees are winged insects closely related to wasps and ants, known for their roles in pollination and, in the case of the best-known bee species, the western honey bee, for producing honey. Bees are a monophyletic lineage within the superfamily Apoidea. They are currently considered a clade, called Anthophila[citation needed]. There are over 20,000 known species of bees in seven recognized biological families.[1][2][3] Some species – including honey bees, bumblebees, and stingless bees – live socially in colonies while most species (>90%) – including mason bees, carpenter bees, leafcutter bees, and sweat bees – are solitary.";
+//     std::string message = "lets sign this dude!";
+//     std::string not_my_message = "i took her to the penthouse then i 😨 it.";
+//     // std::string message = "this is my very sensitive data. please do not tell anybody. Bees are winged insects closely related to wasps and ants, known for their roles in pollination and, in the case of the best-known bee species, the western honey bee, for producing honey. Bees are a monophyletic lineage within the superfamily Apoidea. They are currently considered a clade, called Anthophila[citation needed]. There are over 20,000 known species of bees in seven recognized biological families.[1][2][3] Some species – including honey bees, bumblebees, and stingless bees – live socially in colonies while most species (>90%) – including mason bees, carpenter bees, leafcutter bees, and sweat bees – are solitary.";
 
-    std::vector<uint8_t> data;
-    data.resize(message.size());
-    memcpy(data.data(), message.c_str(), message.size());
+//     std::vector<uint8_t> data;
+//     data.resize(message.size());
+//     memcpy(data.data(), message.c_str(), message.size());
 
-    std::vector<uint8_t> not_my_data;
-    not_my_data.resize(not_my_message.size());
-    memcpy(not_my_data.data(), not_my_message.c_str(), not_my_message.size());
+//     std::vector<uint8_t> not_my_data;
+//     not_my_data.resize(not_my_message.size());
+//     memcpy(not_my_data.data(), not_my_message.c_str(), not_my_message.size());
 
-    gen_keys_ed25519(pub_key, priv_key);
+//     gen_keys_ed25519(pub_key, priv_key);
 
-    printf("public key (%lu bytes):\n", pub_key.size());
-    for(int i = 0; i < pub_key.size(); i++)
-        printf("%02x", pub_key[i]);
-    printf("\n");
+//     printf("public key (%lu bytes):\n", pub_key.size());
+//     for(int i = 0; i < pub_key.size(); i++)
+//         printf("%02x", pub_key[i]);
+//     printf("\n");
 
-    printf("private key (%lu bytes):\n", priv_key.size());
-    for(int i = 0; i < priv_key.size(); i++)
-        printf("%02x", priv_key[i]);
-    printf("\n");
+//     printf("private key (%lu bytes):\n", priv_key.size());
+//     for(int i = 0; i < priv_key.size(); i++)
+//         printf("%02x", priv_key[i]);
+//     printf("\n");
 
-    signature = sign_data_ed25519(priv_key, data);
+//     signature = sign_data_ed25519(priv_key, data);
 
-    printf("signed buffer (%lu bytes):\n", signature.size());
-    for(int i = 0; i < signature.size(); i++)
-        printf("%02x", signature[i]);
-    printf("\n");
+//     printf("signed buffer (%lu bytes):\n", signature.size());
+//     for(int i = 0; i < signature.size(); i++)
+//         printf("%02x", signature[i]);
+//     printf("\n");
 
-    printf("Should be valid: %d\n", verify_signature_ed25519(pub_key, signature, data));
-    printf("Should not be valid: %d\n", verify_signature_ed25519(pub_key, signature, not_my_data));
+//     printf("Should be valid: %d\n", verify_signature_ed25519(pub_key, signature, data));
+//     printf("Should not be valid: %d\n", verify_signature_ed25519(pub_key, signature, not_my_data));
     
-    return 0;
-}
+//     return 0;
+// }
