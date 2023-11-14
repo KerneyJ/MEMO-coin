@@ -43,10 +43,31 @@ Wallet create_wallet() {
     return { priv_key, pub_key };
 }
 
-// load wallet from file
-Wallet load_wallet(std::string filepath) {
-    return {};
+// Function to load a wallet from a file
+Wallet load_wallet(const std::string& filepath) {
+    Wallet wallet;
+
+    // Open the file for reading in binary mode
+    std::ifstream file(filepath, std::ios::binary);
+
+    if (file.is_open()) {
+        // Read the private key from the file
+        file.read(reinterpret_cast<char*>(wallet.priv_key.data()), wallet.priv_key.size());
+
+        // Read the public key from the file
+        file.read(reinterpret_cast<char*>(wallet.pub_key.data()), wallet.pub_key.size());
+
+        // Close the file
+        file.close();
+
+        std::cout << "Wallet loaded successfully." << std::endl;
+    } else {
+        std::cerr << "Error opening file: " << filepath << std::endl;
+    }
+
+    return wallet;
 }
+
 
 // Function to write a wallet to a file
 void store_wallet(const std::string& filepath, const Wallet& wallet) {
@@ -126,20 +147,30 @@ int main(int argc, char** argv) {
                 Wallet wallet = create_wallet();
                 std::cout << "\nWallet created successfully!\n";
                 display_wallet(wallet);
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cout << "\nInput file path to save file to path: ";
-                
+
                 // Use std::getline to get a file path that may contain spaces
                 std::string filePath;
                 std::getline(std::cin, filePath);
 
+                // Clear the input buffer
+
                 std::cout << "You entered: " << filePath << std::endl;
+                store_wallet(filePath, wallet);
+
                 break;
             }
 
             case 2: {
                 // TODO
-                std::cout << "`load_wallet` not implemented.";
-                // std::cout << "Please enter the filepath to your wallet: ";
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Please enter the file path of wallet to load: ";
+                std::string filePath;
+                std::getline(std::cin, filePath);
+                Wallet loaded_wallet = load_wallet(filePath);
+                std::cout << "Loaded wallet!";
+                display_wallet(loaded_wallet);
                 break;
             }
 
