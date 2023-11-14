@@ -2,7 +2,7 @@ CC=gcc
 CPP=g++
 
 CFLAGS=
-CPP_FLAGS=-lssl -lcrypto#-pthread -lzmq
+CPP_FLAGS=-lssl -lcrypto# -lzmq
 
 BIN_DIR=bin
 OBJ_DIR=obj

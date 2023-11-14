@@ -59,7 +59,6 @@ Blake3Hash ProofOfWork::solve_hash(Blake3Hash prev_hash, int difficulty) {
 
         if(check_solution(result, difficulty)) {
             printf("Solved hash in %lu iterations.\n", nonce);
-
             return solution;
         }
 
