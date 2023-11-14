@@ -35,7 +35,7 @@ void gen_keys_ed25519(Ed25519Key &pub_key, Ed25519Key &priv_key) {
     EVP_PKEY_free(pkey);
 }
 
-Ed25519Signature sign_data_ed25519(Ed25519Key priv_key, std::vector<unsigned char> data)
+Ed25519Signature sign_data_ed25519(Ed25519Key priv_key, uint8_t* data, size_t len)
 {
     Ed25519Signature signature;
     size_t sig_len = signature.size();
@@ -44,20 +44,20 @@ Ed25519Signature sign_data_ed25519(Ed25519Key priv_key, std::vector<unsigned cha
     EVP_PKEY *ed_key = EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, NULL, priv_key.cbegin(), priv_key.size());
 
     EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, ed_key);
-    EVP_DigestSign(md_ctx, signature.data(), &sig_len, data.data(), data.size());
+    EVP_DigestSign(md_ctx, signature.data(), &sig_len, data, len);
 
     EVP_MD_CTX_free(md_ctx);
     return signature;
 }
 
-bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, std::vector<unsigned char> data) {
+bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, uint8_t* data, size_t len) {
     bool is_valid;
 
     EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
     EVP_PKEY *ed_key = EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, NULL, pub_key.cbegin(), pub_key.size());
 
     EVP_DigestVerifyInit(md_ctx, NULL, NULL, NULL, ed_key);
-    is_valid = EVP_DigestVerify(md_ctx, signature.data(), signature.size(), data.data(), data.size());
+    is_valid = EVP_DigestVerify(md_ctx, signature.data(), signature.size(), data, len);
 
     EVP_MD_CTX_free(md_ctx);
     return is_valid;
@@ -93,15 +93,15 @@ bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, st
 //         printf("%02x", priv_key[i]);
 //     printf("\n");
 
-//     signature = sign_data_ed25519(priv_key, data);
+//     signature = sign_data_ed25519(priv_key, data.data(), data.size());
 
 //     printf("signed buffer (%lu bytes):\n", signature.size());
 //     for(int i = 0; i < signature.size(); i++)
 //         printf("%02x", signature[i]);
 //     printf("\n");
 
-//     printf("Should be valid: %d\n", verify_signature_ed25519(pub_key, signature, data));
-//     printf("Should not be valid: %d\n", verify_signature_ed25519(pub_key, signature, not_my_data));
+//     printf("Should be valid: %d\n", verify_signature_ed25519(pub_key, signature, data.data(), data.size()));
+//     printf("Should not be valid: %d\n", verify_signature_ed25519(pub_key, signature, not_my_data.data(), not_my_data.size()));
     
 //     return 0;
 // }
