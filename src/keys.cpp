@@ -79,7 +79,7 @@ std::string base58_encode(Ed25519Key key) {
     return encoded;
 }
 
-Ed25519Key base58_dencode(std::string str) {
+Ed25519Key base58_decode(std::string str) {
     Ed25519Key key;
     size_t len = key.size();
 

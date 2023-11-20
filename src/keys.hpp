@@ -10,4 +10,4 @@ Ed25519Signature sign_data_ed25519(Ed25519Key priv_key, uint8_t* data, size_t le
 bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, uint8_t* data, size_t len);
 
 std::string base58_encode(Ed25519Key key);
-Ed25519Key base58_dencode(std::string str);
+Ed25519Key base58_decode(std::string str);

@@ -1,3 +1,4 @@
+#include "transaction.hpp"
 #include <cstddef>
 #include <cstdio>
 #include <exception>
@@ -9,6 +10,14 @@ extern "C" {
 }
 #include "defs.hpp"
 #include "wallet.hpp"
+#include "transaction.hpp"
+#include "keys.hpp"
+
+static uint64_t nonce = 0;
+
+static uint64_t get_nonce() {
+    return nonce++;
+}
 
 int cl_wallet_help() {
     printf("DSC: DataSys Coin Blockchain v1.0\n");
@@ -24,6 +33,7 @@ int cl_wallet_help() {
 }
 
 int cl_wallet_create() {
+    printf("Creating wallet...\n");
     Wallet wallet = create_wallet();
     store_wallet(wallet);
     display_wallet(wallet);
@@ -32,7 +42,12 @@ int cl_wallet_create() {
 }
 
 int cl_wallet_key() {
-    printf("Wallet key not implemented.\n");
+    Wallet wallet;
+
+    printf("Loading wallet...\n");
+    load_wallet(wallet);
+    display_wallet(wallet);
+
     return 0;
 }
 
@@ -42,7 +57,19 @@ int cl_wallet_balance() {
 }
 
 int cl_wallet_send(std::string arg_amount, std::string arg_address) {
-    printf("Wallet send not implemented.\n");
+    Transaction tx;
+    Wallet wallet;
+    Ed25519Key dest;
+    int amount;
+    
+    dest = base58_decode(arg_address);
+    amount = std::stoi(arg_amount);
+    load_wallet(wallet);
+
+    printf("Creating transaction...\n");
+    create_transaction(wallet, dest, amount, get_nonce());
+    display_transaction(tx);
+
     return 0;
 }
 
