@@ -1,6 +1,6 @@
 #include <array>
 
-#include "blake3/blake3.h"
+#include "../external/blake3/blake3.h"
 #include "defs.hpp"
 
 #pragma once

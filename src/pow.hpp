@@ -1,7 +1,7 @@
 #include <array>
 #include <cstdint>
 
-#include "blake3/blake3.h"
+#include "../external/blake3/blake3.h"
 #include "defs.hpp"
 #include "consensus.hpp"
 

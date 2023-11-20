@@ -10,7 +10,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "blake3/blake3.h"
+#include "../external/blake3/blake3.h"
 #include "pow.hpp"
 
 bool check_solution(Blake3Hash result, int difficulty) {

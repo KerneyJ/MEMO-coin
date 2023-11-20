@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 #include <stdio.h>
 #include <openssl/err.h>
 #include <openssl/rsa.h>
@@ -10,6 +11,9 @@
 #include <string>
 #include <vector>
 
+extern "C" {
+    #include "../external/base58/base58.h"
+}
 #include "keys.hpp"
 
 void gen_keys_ed25519(Ed25519Key &pub_key, Ed25519Key &priv_key) {
@@ -61,6 +65,28 @@ bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, ui
 
     EVP_MD_CTX_free(md_ctx);
     return is_valid;
+}
+
+std::string base58_encode(Ed25519Key key) {
+    size_t len = 128;
+    std::string encoded;
+    encoded.resize(len);
+
+    if(!b58enc(encoded.data(), &len, key.data(), key.size()))
+        throw std::runtime_error("Failed to encode key.");
+
+    encoded.resize(len);
+    return encoded;
+}
+
+Ed25519Key base58_dencode(std::string str) {
+    Ed25519Key key;
+    size_t len = key.size();
+
+    if(!b58tobin(key.data(), &len, str.c_str())) 
+        throw std::runtime_error("Failed to encode key.");
+
+    return key;
 }
 
 // int main(int argc, char* argv[]) 

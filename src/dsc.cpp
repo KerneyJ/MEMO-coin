@@ -1,0 +1,94 @@
+#include <cstddef>
+#include <cstdio>
+#include <exception>
+#include <string>
+#include <vector>
+
+extern "C" {
+    #include "../external/base58/base58.h"
+}
+#include "defs.hpp"
+#include "wallet.hpp"
+
+int cl_wallet_help() {
+    printf("DSC: DataSys Coin Blockchain v1.0\n");
+    printf("Help menu for Wallet, supported commands:\n");
+    printf("./dsc wallet help\n");
+    printf("./dsc wallet create\n");
+    printf("./dsc wallet key\n");
+    printf("./dsc wallet balance\n");
+    printf("./dsc wallet send <amount> <address>\n");
+    printf("./dsc wallet transaction <ID>\n");
+
+    return 0;
+}
+
+int cl_wallet_create() {
+    Wallet wallet = create_wallet();
+    store_wallet(wallet);
+    display_wallet(wallet);
+
+    return 0;
+}
+
+int cl_wallet_key() {
+    printf("Wallet key not implemented.\n");
+    return 0;
+}
+
+int cl_wallet_balance() {
+    printf("Wallet balance not implemented.\n");
+    return 0;
+}
+
+int cl_wallet_send(std::string arg_amount, std::string arg_address) {
+    printf("Wallet send not implemented.\n");
+    return 0;
+}
+
+int cl_wallet_transaction(std::string arg_id) {
+    printf("Wallet transaction not implemented.\n");
+    return 0;
+}
+
+int handle_wallet_command(std::vector<std::string> args) {
+    if (args.empty() || args[0] == "help")
+        return cl_wallet_help();
+
+    if (args[0] == "create")
+        return cl_wallet_create();
+
+    if (args[0] == "key")
+        return cl_wallet_key();
+
+    if (args[0] == "balance")
+        return cl_wallet_balance();
+
+    if (args[0] == "send" && args.size() >= 3)
+        return cl_wallet_send(args[1], args[2]);
+
+    if (args[0] == "transaction" && args.size() >= 2)
+        return cl_wallet_transaction(args[1]);
+
+    printf("Please make sure you provided the correct command with all of its arguments.\n");
+    return -1;
+}
+
+int main(int argc, char** argv) {
+    if(argc < 2) {
+        printf("Please provide a component to run.\n");
+        return -1;
+    }
+
+    std::string command(argv[1]);
+    std::vector<std::string> args;
+
+    for(int i = 2; i < argc; i++)
+        args.push_back(argv[i]);
+
+    if(command == "wallet")
+        return handle_wallet_command(args);
+
+    printf("Could not find component to run.\n");
+    return -1;
+}
