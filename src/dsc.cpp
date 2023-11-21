@@ -14,6 +14,7 @@ extern "C" {
 #include "wallet.hpp"
 #include "transaction.hpp"
 #include "keys.hpp"
+#include "blockchain.hpp"
 
 static uint64_t nonce = 0;
 
@@ -53,7 +54,7 @@ int cl_wallet_key() {
 }
 
 int cl_wallet_balance() {
-    printf("Wallet balance not implemented.\n");
+    query_balance();
     return 0;
 }
 
@@ -124,6 +125,11 @@ int handle_pool_command(std::vector<std::string> args) {
     return 0;
 }
 
+int handle_blockchain(std::vector<std::string> args){
+    BlockChain bc = BlockChain();
+    return 0;
+}
+
 int main(int argc, char** argv) {
     printf("DSC: DataSys Coin Blockchain v1.0\n");
     
@@ -143,6 +149,9 @@ int main(int argc, char** argv) {
     
     if(command == "pool")
         return handle_pool_command(args);
+
+    if(command == "blockchain")
+        return handle_blockchain(args);
 
     printf("Could not find component to run.\n");
     return -1;

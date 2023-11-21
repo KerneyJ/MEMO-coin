@@ -17,7 +17,7 @@ class Server {
         void* dealer;
         ThreadPool* threads;
         volatile sig_atomic_t interrupt;
-		static void server_loop(void*, msg_func, volatile sig_atomic_t*);
+        static void server_loop(void*, msg_func, volatile sig_atomic_t*);
     public:
         Server();
         ~Server();

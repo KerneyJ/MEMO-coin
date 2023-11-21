@@ -102,7 +102,7 @@ int main(void){
     struct Wallet wallet = create_wallet();
     IConsensusModel* validator = new ProofOfMemory(wallet);
 
-    Blake3Hash solution = validator->solve_hash(prev_hash, 22);
+    Blake3Hash solution = validator->solve_hash(prev_hash, 24);
 
     for(int i = 0; i < solution.size(); i++) {
         printf("%02x", solution[i]);

@@ -69,5 +69,21 @@ void display_wallet(Wallet& wallet) {
 }
 
 int query_balance(std::string blockchain_node) {
-    return -1;
+    ReceiveBuffer res_buf;
+
+    void* context = zmq_ctx_new();
+    void* requester = zmq_socket(context, ZMQ_REQ);
+
+    zmq_connect(requester, blockchain_node.c_str());
+
+    auto req_buf = serialize_message(0, GET_BAL);
+    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
+
+    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
+    auto response = deserialize_message<uint32_t>(res_buf);
+
+    zmq_close(requester);
+    zmq_ctx_destroy(context);
+
+    return response.buffer;
 }
