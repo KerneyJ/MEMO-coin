@@ -8,7 +8,7 @@
 
 #pragma once
 
-typedef std::function<void(void*, Message)> msg_func;
+typedef std::function<void(void*, Message<MessageBuffer>)> msg_func;
 
 class Server {
     private:
@@ -21,5 +21,5 @@ class Server {
     public:
         Server();
         ~Server();
-        int start(msg_func message_handler);
+        int start(std::string address, msg_func message_handler);
 };

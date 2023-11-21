@@ -12,8 +12,8 @@
 void Server::server_loop(void* context, msg_func message_handler, volatile sig_atomic_t *interrupt) {
 	int status;
     std::error_code ec;
-	Message request;
-	std::array<uint8_t, sizeof(Message)> bytes;
+	Message<MessageBuffer> request;
+	ReceiveBuffer bytes;
 
     void *receiver = zmq_socket (context, ZMQ_REP);
     status = zmq_connect (receiver, "inproc://workers");
@@ -27,18 +27,18 @@ void Server::server_loop(void* context, msg_func message_handler, volatile sig_a
         if(status == -1)
 			throw std::runtime_error("Could not receive message.");
 
-		request = alpaca::deserialize<Message>(bytes, ec);
+		request = deserialize_message<MessageBuffer>(bytes);
 		message_handler(receiver, request);
     }
 
     zmq_close (receiver);
 }
 
-int Server::start(msg_func message_handler) {
+int Server::start(std::string address, msg_func message_handler) {
 	int rc;
 
     router = zmq_socket (context, ZMQ_ROUTER);
-    rc = zmq_bind (router, "tcp://*:5555");
+    rc = zmq_bind (router, address.c_str());
 
     dealer = zmq_socket (context, ZMQ_DEALER);
     rc |= zmq_bind (dealer, "inproc://workers");

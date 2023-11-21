@@ -66,10 +66,17 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     load_wallet(wallet);
 
     printf("Creating transaction...\n");
-    create_transaction(wallet, dest, amount, get_nonce());
+    tx = create_transaction(wallet, dest, amount, get_nonce());
     display_transaction(tx);
 
-    printf("Transaction sending not implemented.\n");
+    int status = submit_transaction(tx, "tcp://localhost:5555");
+
+    if(status < 0) {
+        printf("Transaction failed to post.\n");
+        return -1;
+    } 
+
+    printf("Transaction submitted successfully!\n");
 
     return 0;
 }

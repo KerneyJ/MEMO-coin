@@ -16,7 +16,4 @@ Wallet create_wallet();
 void display_wallet(Wallet& wallet);
 bool load_wallet(Wallet& wallet);
 bool store_wallet(Wallet& wallet);
-
-// TODO: later when we have other nodes
-uint32_t query_balance();
-void submit_transaction();
+int query_balance(std::string blockchain_node);

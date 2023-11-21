@@ -1,22 +1,13 @@
-#include <cstddef>
+#include <array>
 #include <cstdint>
 #include <fstream>
-#include <iostream>
-#include <limits>
-#include <string>
-#include <array>
-#include <iomanip> 
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <vector>
 #include <zmq.h>
 
 #include "defs.hpp"
 #include "transaction.hpp"
 #include "wallet.hpp"
 #include "keys.hpp"
+#include "messages.hpp"
 
 Wallet create_wallet() {
     Ed25519Key pub_key, priv_key;
@@ -77,21 +68,6 @@ void display_wallet(Wallet& wallet) {
     printf("Private Key: %s\n", priv_key.c_str());
 }
 
-void submit_transaction(Transaction tx) {
-    void *context = zmq_ctx_new ();
-    void *requester = zmq_socket (context, ZMQ_REQ);
-    
-    zmq_connect (requester, "tcp://localhost:5555");
-
-    Foo foo1 = {42, 'J', "test1234"};
-    Foo foo2 = {69, 'K', "woop woop"};
-    Foo foo3 = {420, 'L', "jajajajaja"};
-    Bar my_bar = {OKAY, {foo1, foo2, foo3}};
-
-    std::vector<uint8_t> bytes;
-    auto bytes_written = alpaca::serialize(my_bar, bytes);
-    printf("bytes written: %lu\n", bytes_written);
-
-    printf ("Sending Struct…\n");
-    zmq_send (requester, bytes.data(), bytes.size(), 0);
+int query_balance(std::string blockchain_node) {
+    return -1;
 }

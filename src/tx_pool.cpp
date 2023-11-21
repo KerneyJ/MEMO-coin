@@ -1,28 +1,39 @@
 #include <array>
+#include <cstdint>
 #include <mutex>
 #include <queue>
 #include <system_error>
 #include <zmq.h>
-#include <alpaca/alpaca.h>
 
 #include "defs.hpp"
 #include "transaction.hpp"
 #include "tx_pool.hpp"
 
 TxPool::TxPool() {
+    std::string address = "tcp://*:5555";
+	auto fp = std::bind(&TxPool::request_handler, this, std::placeholders::_1, std::placeholders::_2);
+	
+	if(server.start(address, fp) < 0)
+		throw std::logic_error("Server could not bind.");
 }
 
 TxPool::~TxPool() {
 }
 
-void TxPool::add_transaction(Transaction tx) {
+int TxPool::add_transaction(Transaction tx) {
     std::unique_lock<std::mutex> lock(tx_lock);
 
-    // TODO: check transaction signature
-    // if(!verify_transaction(transactions))
-    //     send error
+    // TODO: check transaction id
 
+    if(!verify_transaction_signature(tx)) {
+        printf("Signature invalid. Rejecting transaction!\n");
+        return -1;
+    }
+
+    printf("Signature valid, adding transaction...\n");
     transactions.push(tx);
+
+    return 0;
 }
 
 std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
@@ -38,20 +49,18 @@ std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
     return response;
 }
 
-void TxPool::request_handler(void* receiver, Message request) {
-    std::error_code ec;
-    Transaction tx;
-
-	printf("Received message! type=%d", request.type);
+void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
+	printf("Received message! type=%d\n", request.type);
 
     if(request.type == POP_TX) {
-        std::vector<uint8_t> bytes;
         auto txs = pop_transactions();
-        alpaca::serialize(txs, bytes);
+        auto bytes = serialize_message(txs, STATUS_GOOD);
         zmq_send (receiver, bytes.data(), bytes.size(), 0);
     } else if(request.type == POST_TX) {
-        auto tx = alpaca::deserialize<Transaction>(request.buffer, ec);
-        add_transaction(tx);
+        auto tx = deserialize_payload<Transaction>(request.buffer);
+        int status = add_transaction(tx);
+        auto bytes = serialize_message<NullMessage>({}, (status < 0) ? STATUS_BAD : STATUS_GOOD);
+        zmq_send (receiver, bytes.data(), bytes.size(), 0);
     } else {
         throw std::runtime_error("Unknown message type.");
     }
@@ -59,5 +68,4 @@ void TxPool::request_handler(void* receiver, Message request) {
 
 int main(void) {
     TxPool tx_pool = TxPool();
-    tx_pool.start_server();
 }
