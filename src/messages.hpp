@@ -8,17 +8,18 @@
 #define MESSAGE_BUF_SIZE 1000
 #define MESSAGE_SIZE sizeof(Message<MessageBuffer>)
 
-
-enum message_type {
+enum MessageType {
     POST_TX,
     POP_TX,
+    QUERY_TX_STATUS,
     STATUS_GOOD,
     STATUS_BAD,
 };
 
 template<typename Type>
 struct Message {
-    message_type type;
+
+    MessageType type;
     Type buffer;
 };
 
@@ -28,7 +29,7 @@ typedef std::array<uint8_t, MESSAGE_SIZE> ReceiveBuffer;
 constexpr auto OPTIONS = alpaca::options::fixed_length_encoding;
 
 template<typename PayloadType>
-std::vector<uint8_t> serialize_message(PayloadType data, message_type type) {
+std::vector<uint8_t> serialize_message(PayloadType data, MessageType type) {
     std::vector<uint8_t> bytes;
     Message<PayloadType> msg = { type, data };
     auto bytes_written = alpaca::serialize<OPTIONS>(msg, bytes);

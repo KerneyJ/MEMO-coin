@@ -19,11 +19,11 @@ BASE58_SRCS=$(BASE58_FILES:$(BASE58_DIR)/%=%)
 BASE58_OBJS=$(BASE58_SRCS:.c=.o)
 
 C_SRCS=
-CPP_SRCS=keys.cpp wallet.cpp transaction.cpp utils.cpp server.cpp thread_pool.cpp
+CPP_SRCS=keys.cpp wallet.cpp transaction.cpp utils.cpp server.cpp thread_pool.cpp tx_pool.cpp 
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
-TARGETS=tx_pool.cpp dsc.cpp
+TARGETS=dsc.cpp
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG

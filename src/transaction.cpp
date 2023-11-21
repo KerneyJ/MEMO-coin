@@ -73,14 +73,22 @@ int submit_transaction(Transaction tx, std::string tx_pool) {
     return (response.type == STATUS_GOOD) ? 0 : -1;
 }
 
+Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
+    ReceiveBuffer res_buf;
 
-    // std::vector<uint8_t> req_bytes;
-    // alpaca::serialize<OPTIONS>(tx, req_bytes);
+    void *context = zmq_ctx_new ();
+    void *requester = zmq_socket (context, ZMQ_REQ);
 
-    // std::array<uint8_t, 1000> res_bytes;
-    // memcpy(res_bytes.data(), req_bytes.data(), req_bytes.size());
-    // std::error_code ec;
-    // Transaction detx = alpaca::deserialize<OPTIONS, Transaction>(res_bytes, ec);
-    // display_transaction(detx);
-    // printf("errors: %s\n", ec.message().c_str());
-    // printf("signature: %d\n", verify);
+    zmq_connect (requester, tx_pool.c_str());
+
+    auto req_buf = serialize_message(id, QUERY_TX_STATUS);
+    zmq_send (requester, req_buf.data(), req_buf.size(), 0);
+
+    zmq_recv (requester, res_buf.data(), res_buf.size(), 0);
+    auto response = deserialize_message<Transaction::Status>(res_buf);
+
+    zmq_close (requester);
+    zmq_ctx_destroy (context);
+
+    return response.buffer;
+}

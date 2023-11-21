@@ -1,9 +1,11 @@
 #include "transaction.hpp"
+#include "tx_pool.hpp"
 #include <cstddef>
 #include <cstdio>
 #include <exception>
 #include <string>
 #include <vector>
+#include <zmq.h>
 
 extern "C" {
     #include "../external/base58/base58.h"
@@ -69,7 +71,7 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     tx = create_transaction(wallet, dest, amount, get_nonce());
     display_transaction(tx);
 
-    int status = submit_transaction(tx, "tcp://localhost:5555");
+    int status = submit_transaction(tx, TX_POOL_ADDR);
 
     if(status < 0) {
         printf("Transaction failed to post.\n");
@@ -82,7 +84,15 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
 }
 
 int cl_wallet_transaction(std::string arg_id) {
-    printf("Wallet transaction not implemented.\n");
+    uint64_t id = std::stoi(arg_id);
+    auto status = query_transaction(id, TX_POOL_ADDR);
+
+    printf("Transaction %lu status [%s]\n", id, 
+        (status == Transaction::CONFIRMED)   ? "CONFIRMED" :
+        (status == Transaction::UNCONFIRMED) ? "UNCONFIRMED" :
+        (status == Transaction::SUBMITTED)   ? "SUBMITTED" :
+        (status == Transaction::UNKNOWN)     ? "UNKNOWN" : "NULL");
+
     return 0;
 }
 
@@ -109,6 +119,11 @@ int handle_wallet_command(std::vector<std::string> args) {
     return -1;
 }
 
+int handle_pool_command(std::vector<std::string> args) {
+    TxPool tx_pool = TxPool();
+    return 0;
+}
+
 int main(int argc, char** argv) {
     printf("DSC: DataSys Coin Blockchain v1.0\n");
     
@@ -125,6 +140,9 @@ int main(int argc, char** argv) {
 
     if(command == "wallet")
         return handle_wallet_command(args);
+    
+    if(command == "pool")
+        return handle_pool_command(args);
 
     printf("Could not find component to run.\n");
     return -1;
