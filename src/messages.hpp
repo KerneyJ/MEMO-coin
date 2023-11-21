@@ -15,6 +15,7 @@ enum MessageType {
     STATUS_GOOD,
     STATUS_BAD,
     GET_BAL,
+    ADD_BLOCK,
 };
 
 template<typename Type>
