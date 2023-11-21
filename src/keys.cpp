@@ -69,14 +69,12 @@ bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, ui
 
 std::string base58_encode(Ed25519Key key) {
     size_t len = 128;
-    std::string encoded;
-    encoded.resize(len);
+    char encoded[128];
 
-    if(!b58enc(encoded.data(), &len, key.data(), key.size()))
+    if(!b58enc(encoded, &len, key.data(), key.size()))
         throw std::runtime_error("Failed to encode key.");
 
-    encoded.resize(len);
-    return encoded;
+    return std::string(encoded);
 }
 
 Ed25519Key base58_decode(std::string str) {

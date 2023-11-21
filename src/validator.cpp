@@ -11,14 +11,18 @@
 #include "transaction.hpp"
 #include "validator.hpp"
 #include "wallet.hpp"
+#include "utils.hpp"
 
-Validator::Validator(AddressList _blockchain_peers, AddressList _tx_pools, IConsensusModel* _consensus) {
+Validator::Validator(AddressList _blockchain_peers, AddressList _metronome_peers, 
+    AddressList _tx_pools, IConsensusModel* _consensus) 
+{
     blockchain_peers = _blockchain_peers;
+    metronome_peers = _metronome_peers;
     tx_pools = _tx_pools;
     consensus = _consensus;
 
     difficulty = 1;
-    // wallet = load_wallet("./confing/wallet.cfg");
+    load_wallet(wallet);
 }
 
 Validator::~Validator() {
@@ -38,6 +42,7 @@ void Validator::run() {
 }
 
 BlockHeader Validator::request_block_header() {
+    // TODO: make request to blockchain
     Blake3Hash hash, prev_hash;
     hash.fill(255);
 
@@ -56,7 +61,7 @@ Block Validator::create_block(BlockHeader prev_block, Blake3Hash solution) {
             solution,
             prev_block.hash,
             prev_block.difficulty,
-            static_cast<uint64_t>(std::time(nullptr))
+            get_timestamp()
         },
         txs
     };
@@ -65,9 +70,11 @@ Block Validator::create_block(BlockHeader prev_block, Blake3Hash solution) {
 }
 
 std::array<Transaction, BLOCK_SIZE> Validator::request_txs() {
+    // TODO: make request to tx_pool
     std::array<Transaction, BLOCK_SIZE> txs;
 
     std::string pool = tx_pools.get_address();
+
 
     return txs;
 }
@@ -80,9 +87,10 @@ int Validator::submit_block(Block block) {
 
 int main() {
     AddressList blockchain_peers;
+    AddressList metronome_peers;
     AddressList tx_pools;
     IConsensusModel* consensus = new ProofOfWork();
 
-    Validator validator = Validator(blockchain_peers, tx_pools, consensus);
+    Validator validator = Validator(blockchain_peers, metronome_peers, tx_pools, consensus);
     validator.run();
 }

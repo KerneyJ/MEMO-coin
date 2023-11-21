@@ -17,6 +17,7 @@ class Validator {
     private:
         int difficulty;
         AddressList blockchain_peers;
+        AddressList metronome_peers;
         AddressList tx_pools;
         IConsensusModel* consensus;
         Wallet wallet;
@@ -25,7 +26,7 @@ class Validator {
         BlockHeader request_block_header();
         std::array<Transaction, BLOCK_SIZE> request_txs();
     public:
-        Validator(AddressList blockchain_peers, AddressList tx_pools, IConsensusModel* consensus_model);
+        Validator(AddressList blockchain_peers, AddressList metronome_peers, AddressList tx_pools, IConsensusModel* consensus_model);
         ~Validator();
         void run();
 };

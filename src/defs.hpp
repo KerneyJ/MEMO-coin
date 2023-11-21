@@ -1,5 +1,6 @@
 #include <array>
 #include <cstdint>
+#include <chrono>
 
 #include "../external/blake3/blake3.h"
 

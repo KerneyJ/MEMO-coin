@@ -20,7 +20,6 @@ static uint64_t get_nonce() {
 }
 
 int cl_wallet_help() {
-    printf("DSC: DataSys Coin Blockchain v1.0\n");
     printf("Help menu for Wallet, supported commands:\n");
     printf("./dsc wallet help\n");
     printf("./dsc wallet create\n");
@@ -70,6 +69,8 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     create_transaction(wallet, dest, amount, get_nonce());
     display_transaction(tx);
 
+    printf("Transaction sending not implemented.\n");
+
     return 0;
 }
 
@@ -102,6 +103,8 @@ int handle_wallet_command(std::vector<std::string> args) {
 }
 
 int main(int argc, char** argv) {
+    printf("DSC: DataSys Coin Blockchain v1.0\n");
+    
     if(argc < 2) {
         printf("Please provide a component to run.\n");
         return -1;

@@ -40,9 +40,9 @@ std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
 
 void TxPool::request_handler(void* receiver, Message request) {
     std::error_code ec;
-	printf("Received message! type=%d", request.type);
-
     Transaction tx;
+
+	printf("Received message! type=%d", request.type);
 
     if(request.type == POP_TX) {
         std::vector<uint8_t> bytes;
