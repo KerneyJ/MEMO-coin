@@ -5,6 +5,8 @@
 
 #include "transaction.hpp"
 
+#pragma once
+
 #define MESSAGE_BUF_SIZE 1000
 #define MESSAGE_SIZE sizeof(Message<MessageBuffer>)
 

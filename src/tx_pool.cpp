@@ -22,8 +22,8 @@ void TxPool::start(std::string address) {
 int TxPool::add_transaction(Transaction tx) {
     std::unique_lock<std::mutex> lock(tx_lock);
 
+    printf("Received transaction.\n");
     display_transaction(tx);
-    // TODO: check transaction id
 
     if(!verify_transaction_signature(tx)) {
         printf("Signature invalid. Rejecting transaction!\n");
@@ -41,7 +41,8 @@ std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
     std::array<Transaction, BLOCK_SIZE> response;
 
     // TODO: very inefficient, queue with bulk pop would perform better
-    for(int i = 0; i < BLOCK_SIZE && !transactions.empty(); i++) {
+    // Only take block size - 1 so there is room for the reward
+    for(int i = 0; i < BLOCK_SIZE - 1 && !transactions.empty(); i++) {
         response[i] = transactions.front();
         transactions.pop();
     }

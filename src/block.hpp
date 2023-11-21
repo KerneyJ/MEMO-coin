@@ -2,6 +2,8 @@
 #include "consensus.hpp"
 #include "defs.hpp"
 
+#pragma once
+
 struct Block;
 struct BlockHeader;
 

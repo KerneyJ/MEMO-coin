@@ -1,6 +1,7 @@
 #include <array>
 #include <cstdint>
 #include <ctime>
+#include <functional>
 #include <vector>
 #include <string>
 
@@ -11,26 +12,28 @@
 #include "validator.hpp"
 #include "wallet.hpp"
 #include "utils.hpp"
-#include "config.hpp"
 
 Validator::Validator(std::string _blockchain, std::string _metronome, 
-    std::string _tx_pool, IConsensusModel* _consensus) 
+    std::string _tx_pool, IConsensusModel* _consensus, Wallet _wallet) 
 {
     blockchain = _blockchain;
     metronome = _metronome;
     tx_pool = _tx_pool;
     consensus = _consensus;
-
-    difficulty = 1;
-    load_wallet(wallet);
+    wallet = _wallet;
 }
 
 Validator::~Validator() {
     delete consensus;
 }
 
-void Validator::run() {
-    // TODO: error handling
+void Validator::start(std::string address) {
+	auto fp = std::bind(&Validator::request_handler, this, std::placeholders::_1, std::placeholders::_2);
+	
+	if(server.start(address, fp, false) < 0)
+		throw std::runtime_error("Server could not bind.");
+
+    // TODO: error handling & validation
     while(true) {
         auto problem = request_block_header();
         Blake3Hash solution = consensus->solve_hash(problem.hash, problem.difficulty);
@@ -80,4 +83,8 @@ int Validator::submit_block(Block block) {
     // TODO: implement
 
     return 0;
+}
+
+void Validator::request_handler(void* receiver, Message<MessageBuffer> request) {
+
 }

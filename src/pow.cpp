@@ -13,7 +13,7 @@
 #include "../external/blake3/blake3.h"
 #include "pow.hpp"
 
-bool check_solution(Blake3Hash result, int difficulty) {
+static bool check_solution(Blake3Hash result, int difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size())
@@ -64,19 +64,4 @@ Blake3Hash ProofOfWork::solve_hash(Blake3Hash prev_hash, int difficulty) {
 
         nonce++;
     }
-}
-
-int main(void) {
-    Blake3Hash prev_hash;
-    prev_hash.fill(255);
-
-    IConsensusModel* validator = new ProofOfWork();
-
-    Blake3Hash solution = validator->solve_hash(prev_hash, 26);
-
-    for (int i = 0; i < solution.size(); i++) {
-        printf("%02x", solution[i]);
-    }
-    printf("\n");
-    return 0;
 }

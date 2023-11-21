@@ -21,5 +21,5 @@ class Server {
     public:
         Server();
         ~Server();
-        int start(std::string address, msg_func message_handler);
+        int start(std::string address, msg_func message_handler, bool blocking = true);
 };

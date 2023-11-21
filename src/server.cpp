@@ -34,8 +34,10 @@ void Server::server_loop(void* context, msg_func message_handler, volatile sig_a
     zmq_close (receiver);
 }
 
-int Server::start(std::string address, msg_func message_handler) {
+int Server::start(std::string address, msg_func message_handler, bool blocking) {
 	int rc;
+
+	printf("Initializing server.\n");
 
     router = zmq_socket (context, ZMQ_ROUTER);
     rc = zmq_bind (router, address.c_str());
@@ -48,15 +50,25 @@ int Server::start(std::string address, msg_func message_handler) {
 		return -1;
 	}
 
-	printf("Starting worker threads.\n");
+    printf("starting workers\n");
+
 	for(int i = 0; i < threads->size(); i++) {
 		threads->queue_job([this, message_handler] {
 			server_loop(context, message_handler, &interrupt);
 		});
 	}
 
-	printf("Starting proxy.\n");
-    zmq_proxy (router, dealer, NULL);
+    printf("started workers\n");
+
+    if(blocking) {
+        zmq_proxy (router, dealer, NULL);
+    } else {
+        std::thread([this] {
+            zmq_proxy(router, dealer, NULL);
+        }).detach();
+    }
+
+    printf("started router\n");
 
     return 0;
 }

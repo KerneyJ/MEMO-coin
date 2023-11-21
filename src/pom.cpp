@@ -7,11 +7,12 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include "wallet.hpp"
 
+#include "wallet.hpp"
+#include "config.hpp"
 #include "pom.hpp"
 
-bool check_solution(Blake3Hash result, int difficulty) {
+static bool check_solution(Blake3Hash result, int difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size())
@@ -39,7 +40,7 @@ bool comphash(Blake3Hash h1, Blake3Hash h2){
     return false;
 }
 
-ProofOfMemory::ProofOfMemory(struct Wallet wallet){
+ProofOfMemory::ProofOfMemory(Wallet wallet){
     this->wallet = wallet;
     this->gen_hashes();
 }
@@ -93,21 +94,4 @@ Blake3Hash ProofOfMemory::solve_hash(Blake3Hash prev_hash, int difficulty) {
     }
     result.fill(0);
     return result;
-}
-
-int main(void){
-    Blake3Hash prev_hash;
-    prev_hash.fill(255);
-
-    struct Wallet wallet = create_wallet();
-    IConsensusModel* validator = new ProofOfMemory(wallet);
-
-    Blake3Hash solution = validator->solve_hash(prev_hash, 24);
-
-    for(int i = 0; i < solution.size(); i++) {
-        printf("%02x", solution[i]);
-    }
-    printf("\n");
-
-    return 0;
 }

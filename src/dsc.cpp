@@ -1,5 +1,6 @@
-#include "transaction.hpp"
-#include "tx_pool.hpp"
+#include "consensus.hpp"
+#include "pom.hpp"
+#include "pow.hpp"
 #include <cstddef>
 #include <cstdio>
 #include <exception>
@@ -16,6 +17,9 @@ extern "C" {
 #include "keys.hpp"
 #include "blockchain.hpp"
 #include "config.hpp"
+#include "transaction.hpp"
+#include "tx_pool.hpp"
+#include "validator.hpp"
 
 int cl_wallet_help() {
     printf("Help menu for Wallet, supported commands:\n");
@@ -130,7 +134,29 @@ int run_pool(std::vector<std::string> args) {
 }
 
 int run_validator(std::vector<std::string> args) {
-    printf("Not implemented yet.\n");
+    Wallet wallet;
+
+    std::string val_address = get_validator_address();
+    std::string bc_address = get_blockchain_address();
+    std::string met_address = get_metronome_address();
+    std::string pool_address = get_tx_pool_address();
+    std::string consensus_type = get_consensus_method();
+    load_wallet(wallet);
+
+    IConsensusModel* model;
+    
+    if(consensus_type == "pow") {
+        model = new ProofOfWork();
+    } else if (consensus_type == "pom") {
+        model = new ProofOfMemory(wallet);
+    } else {
+        printf("Unknown consensus method.\n");
+        return -1;
+    }
+
+    Validator validator = Validator(bc_address, met_address, pool_address, model, wallet);
+    validator.start(val_address);
+
     return -1;
 }
 
