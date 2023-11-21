@@ -2,7 +2,7 @@ CC=gcc
 CPP=g++
 
 CFLAGS=
-CPP_FLAGS=-lssl -lcrypto -lzmq
+CPP_FLAGS=-lssl -lcrypto -lzmq -lyaml-cpp
 
 BIN_DIR=bin
 OBJ_DIR=obj
@@ -19,7 +19,7 @@ BASE58_SRCS=$(BASE58_FILES:$(BASE58_DIR)/%=%)
 BASE58_OBJS=$(BASE58_SRCS:.c=.o)
 
 C_SRCS=
-CPP_SRCS=keys.cpp wallet.cpp transaction.cpp utils.cpp server.cpp thread_pool.cpp tx_pool.cpp 
+CPP_SRCS=keys.cpp wallet.cpp transaction.cpp utils.cpp server.cpp thread_pool.cpp tx_pool.cpp config.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 

@@ -14,12 +14,7 @@ extern "C" {
 #include "wallet.hpp"
 #include "transaction.hpp"
 #include "keys.hpp"
-
-static uint64_t nonce = 0;
-
-static uint64_t get_nonce() {
-    return nonce++;
-}
+#include "config.hpp"
 
 int cl_wallet_help() {
     printf("Help menu for Wallet, supported commands:\n");
@@ -68,7 +63,7 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     load_wallet(wallet);
 
     printf("Creating transaction...\n");
-    tx = create_transaction(wallet, dest, amount, get_nonce());
+    tx = create_transaction(wallet, dest, amount, get_tx_id());
     display_transaction(tx);
 
     int status = submit_transaction(tx, TX_POOL_ADDR);
@@ -126,7 +121,7 @@ int handle_pool_command(std::vector<std::string> args) {
 
 int main(int argc, char** argv) {
     printf("DSC: DataSys Coin Blockchain v1.0\n");
-    
+
     if(argc < 2) {
         printf("Please provide a component to run.\n");
         return -1;
