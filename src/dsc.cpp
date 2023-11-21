@@ -49,7 +49,7 @@ int cl_wallet_key() {
 }
 
 int cl_wallet_balance() {
-    query_balance();
+    query_balance(get_blockchain_address());
     return 0;
 }
 
@@ -145,16 +145,14 @@ int main(int argc, char** argv) {
     if(command == "pool")
         return handle_pool_command(args);
 
-<<<<<<< HEAD
     if(command == "blockchain")
         return handle_blockchain(args);
-=======
+
     if(command == "metronome")
         return handle_pool_command(args);
 
     if(command == "validator")
         return handle_pool_command(args);
->>>>>>> 60e5fcf483f1b439bd1306fac63e0a8bfd8877bc
 
     printf("Could not find component to run.\n");
     return -1;
