@@ -14,6 +14,4 @@ struct Wallet {
 
 Wallet create_wallet();
 void display_wallet(Wallet& wallet);
-bool load_wallet(Wallet& wallet);
-bool store_wallet(Wallet& wallet);
 int query_balance(std::string blockchain_node);

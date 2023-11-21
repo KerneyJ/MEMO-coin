@@ -20,7 +20,6 @@ enum MessageType {
 
 template<typename Type>
 struct Message {
-
     MessageType type;
     Type buffer;
 };
