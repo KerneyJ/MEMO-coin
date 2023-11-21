@@ -139,6 +139,12 @@ int main(int argc, char** argv) {
     if(command == "pool")
         return handle_pool_command(args);
 
+    if(command == "metronome")
+        return handle_pool_command(args);
+
+    if(command == "validator")
+        return handle_pool_command(args);
+
     printf("Could not find component to run.\n");
     return -1;
 }

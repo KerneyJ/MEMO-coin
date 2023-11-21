@@ -14,8 +14,8 @@ uint64_t get_tx_id();
 
 // Trancastion pool config
 
-std::string get_tx_pools_threads();
-std::string get_tx_pools_address();
+std::string get_tx_pool_threads();
+std::string get_tx_pool_address();
 
 // Validator config
 
@@ -25,10 +25,10 @@ std::string get_consensus_method();
 
 // Metronome config
 
-std::string get_blockchain_address();
-std::string get_blockchain_threads();
+std::string get_metronome_address();
+std::string get_metronome_threads();
 
 // Blockchain config
 
-std::string get_metronome_address();
-std::string get_metronome_threads();
+std::string get_blockchain_address();
+std::string get_blockchain_threads();
