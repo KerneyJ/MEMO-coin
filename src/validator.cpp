@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 
-#include "address_list.hpp"
 #include "consensus.hpp"
 #include "defs.hpp"
 #include "pow.hpp"
@@ -12,13 +11,14 @@
 #include "validator.hpp"
 #include "wallet.hpp"
 #include "utils.hpp"
+#include "config.hpp"
 
-Validator::Validator(AddressList _blockchain_peers, AddressList _metronome_peers, 
-    AddressList _tx_pools, IConsensusModel* _consensus) 
+Validator::Validator(std::string _blockchain, std::string _metronome, 
+    std::string _tx_pool, IConsensusModel* _consensus) 
 {
-    blockchain_peers = _blockchain_peers;
-    metronome_peers = _metronome_peers;
-    tx_pools = _tx_pools;
+    blockchain = _blockchain;
+    metronome = _metronome;
+    tx_pool = _tx_pool;
     consensus = _consensus;
 
     difficulty = 1;
@@ -73,9 +73,6 @@ std::array<Transaction, BLOCK_SIZE> Validator::request_txs() {
     // TODO: make request to tx_pool
     std::array<Transaction, BLOCK_SIZE> txs;
 
-    std::string pool = tx_pools.get_address();
-
-
     return txs;
 }
 
@@ -83,14 +80,4 @@ int Validator::submit_block(Block block) {
     // TODO: implement
 
     return 0;
-}
-
-int main() {
-    AddressList blockchain_peers;
-    AddressList metronome_peers;
-    AddressList tx_pools;
-    IConsensusModel* consensus = new ProofOfWork();
-
-    Validator validator = Validator(blockchain_peers, metronome_peers, tx_pools, consensus);
-    validator.run();
 }

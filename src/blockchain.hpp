@@ -14,4 +14,5 @@ class BlockChain {
         void request_handler(void* receiver, Message<MessageBuffer> request);
     public:
         BlockChain();
+        void start(std::string address);
 };

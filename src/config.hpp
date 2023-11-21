@@ -1,7 +1,6 @@
 #include <string>
 
 #include "wallet.hpp"
-#include "address_list.hpp"
 
 #define CONFIG_FILE "dsc-config.yaml"
 #define PRIVATE_KEY_FILE "dsc-key.yaml"

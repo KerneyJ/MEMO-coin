@@ -31,6 +31,7 @@ int cl_wallet_help() {
 
 int cl_wallet_create() {
     printf("Creating wallet...\n");
+
     Wallet wallet = create_wallet();
     store_wallet(wallet);
     display_wallet(wallet);
@@ -59,7 +60,8 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     Transaction tx;
     Wallet wallet;
     Ed25519Key dest;
-    int amount;
+    std::string address;
+    int amount, status;
     
     dest = base58_decode(arg_address);
     amount = std::stoi(arg_amount);
@@ -69,7 +71,8 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     tx = create_transaction(wallet, dest, amount, get_tx_id());
     display_transaction(tx);
 
-    int status = submit_transaction(tx, TX_POOL_ADDR);
+    address = get_tx_pool_address();
+    status = submit_transaction(tx, address);
 
     if(status < 0) {
         printf("Transaction failed to post.\n");
@@ -82,8 +85,9 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
 }
 
 int cl_wallet_transaction(std::string arg_id) {
+    std::string address = get_tx_pool_address();
     uint64_t id = std::stoi(arg_id);
-    auto status = query_transaction(id, TX_POOL_ADDR);
+    auto status = query_transaction(id, address);
 
     printf("Transaction %lu status [%s]\n", id, 
         (status == Transaction::CONFIRMED)   ? "CONFIRMED" :
@@ -94,7 +98,7 @@ int cl_wallet_transaction(std::string arg_id) {
     return 0;
 }
 
-int handle_wallet_command(std::vector<std::string> args) {
+int run_wallet(std::vector<std::string> args) {
     if (args.empty() || args[0] == "help")
         return cl_wallet_help();
 
@@ -117,13 +121,29 @@ int handle_wallet_command(std::vector<std::string> args) {
     return -1;
 }
 
-int handle_pool_command(std::vector<std::string> args) {
+int run_pool(std::vector<std::string> args) {
+    printf("Starting transaction pool.\n");
+    std::string address = get_tx_pool_address();
     TxPool tx_pool = TxPool();
+    tx_pool.start(address);
     return 0;
 }
 
-int handle_blockchain(std::vector<std::string> args){
-    BlockChain bc = BlockChain();
+int run_validator(std::vector<std::string> args) {
+    printf("Not implemented yet.\n");
+    return -1;
+}
+
+int run_metronome(std::vector<std::string> args) {
+    printf("Not implemented yet.\n");
+    return -1;
+}
+
+int run_blockchain(std::vector<std::string> args) {
+    printf("Starting blockchain.\n");
+    std::string address = get_blockchain_address();
+    BlockChain blockchain = BlockChain();
+    blockchain.start(address);
     return 0;
 }
 
@@ -142,17 +162,19 @@ int main(int argc, char** argv) {
         args.push_back(argv[i]);
 
     if(command == "wallet")
-        return handle_wallet_command(args);
+        return run_wallet(args);
     
     if(command == "pool")
-        return handle_pool_command(args);
+        return run_pool(args);
+
+    if(command == "metronome")
+        return run_metronome(args);
+
+    if(command == "validator")
+        return run_validator(args);
 
     if(command == "blockchain")
-        return handle_blockchain(args);
-
-    // if(command == "metronome")
-
-    // if(command == "validator")
+        return run_blockchain(args);
 
     printf("Could not find component to run.\n");
     return -1;

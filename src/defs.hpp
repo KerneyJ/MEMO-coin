@@ -7,9 +7,6 @@
 #pragma once
 
 #define BLOCK_SIZE 100
-#define WALLET_PATH "./config/wallet.txt"
-
-#define TX_POOL_ADDR "tcp://localhost:5555"
 
 typedef std::array<uint8_t, BLAKE3_OUT_LEN> Blake3Hash;
 

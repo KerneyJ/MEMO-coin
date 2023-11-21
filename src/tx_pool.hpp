@@ -19,6 +19,5 @@ class TxPool {
         void request_handler(void* receiver, Message<MessageBuffer> request);
     public:
         TxPool();
-        ~TxPool();
-        void start_server();
+        void start(std::string address);
 };

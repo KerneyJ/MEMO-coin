@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <mutex>
 #include <queue>
+#include <stdexcept>
 #include <system_error>
 #include <zmq.h>
 
@@ -9,15 +10,13 @@
 #include "transaction.hpp"
 #include "tx_pool.hpp"
 
-TxPool::TxPool() {
-    std::string address = "tcp://*:5555";
+TxPool::TxPool() {}
+
+void TxPool::start(std::string address) {
 	auto fp = std::bind(&TxPool::request_handler, this, std::placeholders::_1, std::placeholders::_2);
 	
 	if(server.start(address, fp) < 0)
-		throw std::logic_error("Server could not bind.");
-}
-
-TxPool::~TxPool() {
+		throw std::runtime_error("Server could not bind.");
 }
 
 int TxPool::add_transaction(Transaction tx) {

@@ -4,8 +4,9 @@
 
 #include "blockchain.hpp"
 
-BlockChain::BlockChain(){
-    std::string address = "tcp://*:10004";
+BlockChain::BlockChain() {}
+
+void BlockChain::start(std::string address) {
     auto fp = std::bind(&BlockChain::request_handler, this, std::placeholders::_1, std::placeholders::_2);
 
     if(server.start(address, fp) < 0)
