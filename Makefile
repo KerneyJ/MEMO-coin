@@ -23,7 +23,7 @@ CPP_SRCS=keys.cpp wallet.cpp transaction.cpp utils.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
-TARGETS=dsc.cpp
+TARGETS=dsc.cpp pom.cpp
 
 ifeq ($(DEBUG),true)
     CFLAGS := -D DEBUG
