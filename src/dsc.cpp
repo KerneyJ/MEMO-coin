@@ -49,7 +49,9 @@ int cl_wallet_key() {
 }
 
 int cl_wallet_balance() {
-    query_balance(get_blockchain_address());
+    std::string blockchain_node = get_blockchain_address();
+    uint64_t balance = query_balance(blockchain_node);
+    printf("Current balance: %lu\n", balance);
     return 0;
 }
 
@@ -148,11 +150,9 @@ int main(int argc, char** argv) {
     if(command == "blockchain")
         return handle_blockchain(args);
 
-    if(command == "metronome")
-        return handle_pool_command(args);
+    // if(command == "metronome")
 
-    if(command == "validator")
-        return handle_pool_command(args);
+    // if(command == "validator")
 
     printf("Could not find component to run.\n");
     return -1;
