@@ -8,6 +8,7 @@ cd libzmq
 sudo make install
 sudo ldconfig
 cd ..
+
 git clone --recurse-submodules https://github.com/p-ranav/alpaca
 cd alpaca
 cmake -DALPACA_BUILD_TESTS=on \
@@ -16,6 +17,12 @@ cmake -DALPACA_BUILD_TESTS=on \
       -DCMAKE_BUILD_TYPE=Release
 make
 ./test/tests
+make install
+
+git clone git@github.com:jbeder/yaml-cpp.git
+mkdir build
+cd build
+cmake
 make install
 ```
 
@@ -78,7 +85,8 @@ make install
 * has a method to create an empty block
 
 ## External Utils
-* SHA256
+* openssl (key generation)
 * BLAKE3
 * Alpaca (serialization)
 * ZMQ
+* yaml-cpp
