@@ -14,6 +14,7 @@ enum MessageType {
     QUERY_TX_STATUS,
     STATUS_GOOD,
     STATUS_BAD,
+    GET_BAL,
 };
 
 template<typename Type>
@@ -37,7 +38,7 @@ std::vector<uint8_t> serialize_message(PayloadType data, MessageType type) {
 }
 
 template<typename PayloadType>
-Message<PayloadType> deserialize_message(std::array<uint8_t, MESSAGE_SIZE> bytes) {
+Message<PayloadType> deserialize_message(std::array<uint8_t, MESSAGE_SIZE> bytes){
     std::error_code ec;
     return alpaca::deserialize<OPTIONS, Message<PayloadType>>(bytes, ec); 
 }
