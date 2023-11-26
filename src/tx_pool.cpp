@@ -31,7 +31,7 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
     if(!verify_transaction_signature(tx)) {
         printf("Signature invalid. Rejecting transaction!\n");
 
-        auto bytes = serialize_message<NullMessage>({}, STATUS_BAD);
+        auto bytes = serialize_message(STATUS_BAD);
         zmq_send (receiver, bytes.data(), bytes.size(), 0);
         return;
     }
@@ -39,7 +39,7 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
     printf("Signature valid, adding transaction...\n");
     transactions.push(tx);
 
-    auto bytes = serialize_message<NullMessage>({}, STATUS_GOOD);
+    auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
@@ -61,7 +61,7 @@ void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
 }
 
 void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
-    auto bytes = serialize_message<Transaction::Status>(Transaction::UNKNOWN, STATUS_GOOD);
+    auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 

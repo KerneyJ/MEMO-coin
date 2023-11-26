@@ -16,17 +16,17 @@
 
 class Validator {
     private:
+        void* zmq_ctx;
         std::string blockchain;
         std::string metronome;
         std::string tx_pool;
         IConsensusModel* consensus;
         Wallet wallet;
-        Server server;
-        Block create_block(BlockHeader bh, Blake3Hash hash);
+        Block create_block(BlockHeader bh, int difficulty, Blake3Hash hash);
         int submit_block(Block block);
         BlockHeader request_block_header();
+        int request_difficulty();
         std::array<Transaction, BLOCK_SIZE> request_txs();
-        void request_handler(void* receiver, Message<MessageBuffer> request);
     public:
         Validator(std::string, std::string, std::string, IConsensusModel*, Wallet);
         ~Validator();

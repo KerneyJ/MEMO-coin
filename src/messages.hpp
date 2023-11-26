@@ -16,8 +16,10 @@ enum MessageType {
     QUERY_TX_STATUS,
     STATUS_GOOD,
     STATUS_BAD,
-    GET_BAL,
-    ADD_BLOCK,
+    QUERY_BAL,
+    SUBMIT_BLOCK,
+    QUERY_DIFFICULTY,
+    QUERY_LAST_BLOCK,
 };
 
 template<typename Type>
@@ -25,6 +27,8 @@ struct Message {
     MessageType type;
     Type buffer;
 };
+
+class NullMessage {};
 
 typedef std::array<uint8_t, MESSAGE_BUF_SIZE> MessageBuffer;
 typedef std::array<uint8_t, MESSAGE_SIZE> ReceiveBuffer;
@@ -39,6 +43,11 @@ std::vector<uint8_t> serialize_message(PayloadType data, MessageType type) {
     return bytes; 
 }
 
+// use for messages that do not need any response data
+inline std::vector<uint8_t> serialize_message(MessageType type) {
+    return serialize_message<NullMessage>({}, type);
+}
+
 template<typename PayloadType>
 Message<PayloadType> deserialize_message(std::array<uint8_t, MESSAGE_SIZE> bytes){
     std::error_code ec;
@@ -50,5 +59,3 @@ PayloadType deserialize_payload(std::array<uint8_t, MESSAGE_BUF_SIZE> bytes) {
     std::error_code ec;
     return alpaca::deserialize<OPTIONS, PayloadType>(bytes, ec); 
 }
-
-class NullMessage {};

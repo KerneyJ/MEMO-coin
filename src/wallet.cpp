@@ -32,7 +32,7 @@ int query_balance(std::string blockchain_node) {
 
     zmq_connect(requester, blockchain_node.c_str());
 
-    auto req_buf = serialize_message(0, GET_BAL);
+    auto req_buf = serialize_message(0, QUERY_BAL);
     zmq_send(requester, req_buf.data(), req_buf.size(), 0);
 
     zmq_recv(requester, res_buf.data(), res_buf.size(), 0);

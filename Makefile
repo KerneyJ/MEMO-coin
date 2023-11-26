@@ -20,7 +20,7 @@ BASE58_OBJS=$(BASE58_SRCS:.c=.o)
 
 C_SRCS=
 CPP_SRCS=keys.cpp wallet.cpp transaction.cpp utils.cpp server.cpp thread_pool.cpp \
-		tx_pool.cpp blockchain.cpp config.cpp validator.cpp pow.cpp pom.cpp
+		tx_pool.cpp blockchain.cpp config.cpp validator.cpp pow.cpp pom.cpp metronome.cpp
 C_OBJS=$(C_SRCS:.c=.o)
 CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 
@@ -40,7 +40,6 @@ $(BASE58_OBJS): %.o: $(BASE58_DIR)/%.c
 	$(CC) -c $< -o $(OBJ_DIR)/$@ $(CFLAGS) 
 
 $(TARGETS): $(C_OBJS) $(CPP_OBJS) $(BLAKE_SRCS)
-	echo $(BASE58_OBJS)
 	$(CPP) $(SRC_DIR)/$@ -o $(BIN_DIR)/$(patsubst %.cpp,%,$@) \
 		$(addprefix $(OBJ_DIR)/,$(C_OBJS)) $(addprefix $(OBJ_DIR)/,$(CPP_OBJS)) $(addprefix $(OBJ_DIR)/,$(BLAKE_OBJS)) $(addprefix $(OBJ_DIR)/,$(BASE58_OBJS)) $(CPP_FLAGS) 
 

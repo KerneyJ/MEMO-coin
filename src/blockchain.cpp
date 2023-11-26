@@ -22,7 +22,7 @@ int BlockChain::add_block(Block block){
 }
 
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {
-    if(request.type == GET_BAL) {
+    if(request.type == QUERY_BAL) {
         uint32_t bal = get_balance();
         auto bytes = serialize_message(bal, STATUS_GOOD);
         zmq_send(receiver, bytes.data(), bytes.size(), 0);
