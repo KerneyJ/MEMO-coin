@@ -7,6 +7,7 @@
 #include <zmq.h>
 
 #include "defs.hpp"
+#include "messages.hpp"
 #include "transaction.hpp"
 #include "tx_pool.hpp"
 
@@ -19,51 +20,60 @@ void TxPool::start(std::string address) {
 		throw std::runtime_error("Server could not bind.");
 }
 
-int TxPool::add_transaction(Transaction tx) {
+void TxPool::add_transaction(void* receiver, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
+    
+    auto tx = deserialize_payload<Transaction>(data);
 
     printf("Received transaction.\n");
     display_transaction(tx);
 
     if(!verify_transaction_signature(tx)) {
         printf("Signature invalid. Rejecting transaction!\n");
-        return -1;
+
+        auto bytes = serialize_message<NullMessage>({}, STATUS_BAD);
+        zmq_send (receiver, bytes.data(), bytes.size(), 0);
+        return;
     }
 
     printf("Signature valid, adding transaction...\n");
     transactions.push(tx);
 
-    return 0;
+    auto bytes = serialize_message<NullMessage>({}, STATUS_GOOD);
+    zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
-std::array<Transaction, BLOCK_SIZE> TxPool::pop_transactions() {
+void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
-    std::array<Transaction, BLOCK_SIZE> response;
+    std::array<Transaction, BLOCK_SIZE> txs;
 
     // TODO: very inefficient, queue with bulk pop would perform better
     // Only take block size - 1 so there is room for the reward
     for(int i = 0; i < BLOCK_SIZE - 1 && !transactions.empty(); i++) {
-        response[i] = transactions.front();
+        txs[i] = transactions.front();
         transactions.pop();
     }
 
-    return response;
+    // TODO: add unconfirmed queue
+
+    auto bytes = serialize_message(txs, STATUS_GOOD);
+    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+}
+
+void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
+    auto bytes = serialize_message<Transaction::Status>(Transaction::UNKNOWN, STATUS_GOOD);
+    zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
 void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
-    if(request.type == POP_TX) {
-        auto txs = pop_transactions();
-        auto bytes = serialize_message(txs, STATUS_GOOD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
-    } else if(request.type == POST_TX) {
-        auto tx = deserialize_payload<Transaction>(request.buffer);
-        int status = add_transaction(tx);
-        auto bytes = serialize_message<NullMessage>({}, (status < 0) ? STATUS_BAD : STATUS_GOOD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
-    }  else if(request.type == QUERY_TX_STATUS) {
-        auto bytes = serialize_message<Transaction::Status>(Transaction::UNKNOWN, STATUS_GOOD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
-    } else {
-        throw std::runtime_error("Unknown message type.");
+    switch (request.type) {
+        case POP_TX:
+            return pop_transactions(receiver, request.buffer);
+        case POST_TX:
+            return add_transaction(receiver, request.buffer);
+        case QUERY_TX_STATUS:
+            return query_tx_status(receiver, request.buffer);
+        default:
+            throw std::runtime_error("Unknown message type.");
     }
 }

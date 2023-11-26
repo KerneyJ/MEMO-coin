@@ -50,15 +50,11 @@ int Server::start(std::string address, msg_func message_handler, bool blocking) 
 		return -1;
 	}
 
-    printf("starting workers\n");
-
 	for(int i = 0; i < threads->size(); i++) {
 		threads->queue_job([this, message_handler] {
 			server_loop(context, message_handler, &interrupt);
 		});
 	}
-
-    printf("started workers\n");
 
     if(blocking) {
         zmq_proxy (router, dealer, NULL);
@@ -67,8 +63,6 @@ int Server::start(std::string address, msg_func message_handler, bool blocking) 
             zmq_proxy(router, dealer, NULL);
         }).detach();
     }
-
-    printf("started router\n");
 
     return 0;
 }

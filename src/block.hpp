@@ -13,6 +13,11 @@ struct BlockHeader {
     Blake3Hash prev_hash;
     int difficulty;
     uint64_t timestamp;
+    /*** 
+        Additional fields: 
+        - hash digest of all block transactions
+        - public key of wallet that mined the block
+    ***/
 };
 
 struct Block {

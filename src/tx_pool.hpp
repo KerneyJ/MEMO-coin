@@ -14,8 +14,9 @@ class TxPool {
         Server server;
         std::queue<Transaction> transactions;
         std::mutex tx_lock;
-        int add_transaction(Transaction tx);
-        std::array<Transaction, BLOCK_SIZE> pop_transactions();
+        void add_transaction(void* receiver, MessageBuffer request);
+        void pop_transactions(void* receiver, MessageBuffer request);
+        void query_tx_status(void* receiver, MessageBuffer request);
         void request_handler(void* receiver, Message<MessageBuffer> request);
     public:
         TxPool();
