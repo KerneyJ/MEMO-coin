@@ -13,6 +13,7 @@ struct BlockHeader {
     Blake3Hash prev_hash;
     int difficulty;
     uint64_t timestamp;
+    uint64_t blockno; // block number
     /*** 
         Additional fields: 
         - hash digest of all block transactions
