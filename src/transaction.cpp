@@ -61,12 +61,8 @@ int submit_transaction(Transaction tx, std::string tx_pool) {
 
     zmq_connect (requester, tx_pool.c_str());
 
-    auto req_buf = serialize_message(tx, POST_TX);
-    zmq_send (requester, req_buf.data(), req_buf.size(), 0);
-
-    ReceiveBuffer res_buf;
-    zmq_recv (requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<NullMessage>(res_buf);
+    Message<NullMessage> response;
+    request_response(requester, tx, POST_TX, response);
 
     zmq_close (requester);
     zmq_ctx_destroy (context);
@@ -86,14 +82,11 @@ Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
 
     zmq_connect (requester, tx_pool.c_str());
 
-    auto req_buf = serialize_message(tx_key, QUERY_TX_STATUS);
-    zmq_send (requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv (requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<Transaction::Status>(res_buf);
+    Message<Transaction::Status> response;
+    request_response(requester, tx_key, QUERY_TX_STATUS, response);
 
     zmq_close (requester);
     zmq_ctx_destroy (context);
 
-    return response.buffer;
+    return response.data;
 }

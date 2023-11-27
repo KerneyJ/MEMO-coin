@@ -33,27 +33,34 @@ void BlockChain::sync_bal(Block b){
     }
 }
 
-uint32_t BlockChain::get_balance(Ed25519Key pubkey){
-    auto bal = this->ledger.find(pubkey);
-    if(bal == this->ledger.end())
-        return 0;
-    return bal->second;
-}
+void BlockChain::add_block(void* receiver, MessageBuffer data) {
+    auto block = deserialize_payload<Block>(data);
 
-int BlockChain::add_block(Block block){
     // TODO ensure block is valid
     // TODO send the list of transactions in the accepted block the the tx pool
     this->blocks.push_back(block);
-    return 0;
+
+    auto bytes = serialize_message(STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+}
+
+void BlockChain::get_balance(void* receiver, MessageBuffer data) {
+    auto pub_key = deserialize_payload<Ed25519Key>(data);
+    
+    auto entry = this->ledger.find(pub_key);
+    uint32_t balance = (entry == this->ledger.end()) ? 0 : entry->second;
+
+    auto bytes = serialize_message(balance, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
 }
 
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {
-    if(request.type == QUERY_BAL) {
-        auto pub_key = deserialize_payload<Ed25519Key>(request.buffer);
-        uint32_t bal = get_balance(pub_key);
-        auto bytes = serialize_message(bal, STATUS_GOOD);
-        zmq_send(receiver, bytes.data(), bytes.size(), 0);
-    } else {
-        throw std::runtime_error("Unknown message type.");
+    switch (request.type) {
+        case QUERY_BAL:
+            return get_balance(receiver, request.data);
+        case SUBMIT_BLOCK:
+            return add_block(receiver, request.data);
+        default:
+            throw std::runtime_error("Unknown message type.");
     }
 }

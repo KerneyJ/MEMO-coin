@@ -65,7 +65,7 @@ void Metronome::update_difficulty(bool timed_out) {
 
     if(timed_out) {
         if(difficulty <= MIN_DIFFICULTY) {
-            printf("Block solved in %.3fs. Difficulty already at minimum of %d.\n", float(solved_time) / 1000000, difficulty);
+            printf("Block not solved in time. Difficulty already at minimum of %d.\n", difficulty);
             return;
         }
 
@@ -81,20 +81,13 @@ void Metronome::update_difficulty(bool timed_out) {
 
 int Metronome::submit_block(Block block) {
     return 0;
-
-    ReceiveBuffer res_buf;
     void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
-
     zmq_connect(requester, blockchain.c_str());
 
-    auto req_buf = serialize_message(block, SUBMIT_BLOCK);
-    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<NullMessage>(res_buf);
+    Message<NullMessage> response;
+    request_response(requester, block, SUBMIT_BLOCK, response);
 
     zmq_close(requester);
-
     return response.type == STATUS_GOOD ? 0 : -1;
 }
 
@@ -138,9 +131,9 @@ void Metronome::get_difficulty(void* receiver, MessageBuffer data) {
 void Metronome::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case SUBMIT_BLOCK:
-            return handle_block(receiver, request.buffer);
+            return handle_block(receiver, request.data);
         case QUERY_DIFFICULTY:
-            return get_difficulty(receiver, request.buffer);
+            return get_difficulty(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

@@ -25,21 +25,18 @@ void display_wallet(Wallet& wallet) {
 }
 
 int query_balance(std::string blockchain_node) {
-    ReceiveBuffer res_buf;
+    Wallet wallet;
 
     void* context = zmq_ctx_new();
     void* requester = zmq_socket(context, ZMQ_REQ);
 
     zmq_connect(requester, blockchain_node.c_str());
 
-    auto req_buf = serialize_message(0, QUERY_BAL);
-    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<uint32_t>(res_buf);
+    Message<uint32_t> response;
+    request_response(requester, wallet.pub_key, QUERY_BAL, response);
 
     zmq_close(requester);
     zmq_ctx_destroy(context);
 
-    return response.buffer;
+    return response.data;
 }

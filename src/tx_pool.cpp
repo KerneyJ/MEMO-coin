@@ -56,13 +56,13 @@ void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
     // Only take block size - 1 so there is room for the reward
     for(int i = 0; i < BLOCK_SIZE - 1 && !tx_queue.empty(); i++) {
         txs[i] = tx_queue.front();
+
+        //remove from queue & submitted list
         tx_queue.erase(tx_queue.begin());
         submitted_txs.erase({txs[i].src, txs[i].id});
-    }
 
-    // insert into unconfirmed tx list
-    for(auto tx : txs) {
-        unconfirmed_txs.insert({ {tx.src, tx.id}, tx});
+        // insert into unconfirmed tx list
+        unconfirmed_txs.insert({ {txs[i].src, txs[i].id}, txs[i]});
     }
 
     auto bytes = serialize_message(txs, STATUS_GOOD);
@@ -84,36 +84,31 @@ void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
         return;
     }
 
+    // TODO: delete when blockchain is usable
     auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
     return;
 
-    // TODO: uncomment when blockchain is usable
-
-    // ReceiveBuffer res_buf;
     // void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
     // zmq_connect(requester, blockchain.c_str());
 
-    // auto req_buf = serialize_message(0, QUERY_BAL);
-    // zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    // zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    // auto response = deserialize_message<Transaction::Status>(res_buf);
+    // Message<Transaction::Status> response;
+    // request_response(requester, tx_key, QUERY_TX_STATUS, response);
 
     // zmq_close(requester);
 
-    // auto bytes = serialize_message(response.buffer, STATUS_GOOD);
+    // auto bytes = serialize_message(response.data, STATUS_GOOD);
     // zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
 void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case POP_TX:
-            return pop_transactions(receiver, request.buffer);
+            return pop_transactions(receiver, request.data);
         case POST_TX:
-            return add_transaction(receiver, request.buffer);
+            return add_transaction(receiver, request.data);
         case QUERY_TX_STATUS:
-            return query_tx_status(receiver, request.buffer);
+            return query_tx_status(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

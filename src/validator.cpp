@@ -76,71 +76,45 @@ BlockHeader Validator::request_block_header() {
 
     return { hash, prev_hash, 0, 0 };
 
-    ReceiveBuffer res_buf;
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-
     zmq_connect(requester, blockchain.c_str());
 
-    auto req_buf = serialize_message(QUERY_LAST_BLOCK);
-    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<BlockHeader>(res_buf);
+    Message<BlockHeader> response;
+    request_response(requester, QUERY_LAST_BLOCK, response);
 
     zmq_close(requester);
-
-    return response.buffer;
+    return response.data;
 }
 
 int Validator::request_difficulty() {
-    ReceiveBuffer res_buf;
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-
     zmq_connect(requester, metronome.c_str());
 
-    auto req_buf = serialize_message(QUERY_DIFFICULTY);
-    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<int>(res_buf);
+    Message<int> response;
+    request_response(requester, QUERY_DIFFICULTY, response);
 
     zmq_close(requester);
-
-    return response.buffer;
+    return response.data;
 }
 
 std::array<Transaction, BLOCK_SIZE> Validator::request_txs() {
-    return {};
-
-    ReceiveBuffer res_buf;
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-
     zmq_connect(requester, tx_pool.c_str());
 
-    auto req_buf = serialize_message(POP_TX);
-    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<std::array<Transaction, BLOCK_SIZE>>(res_buf);
+    Message<std::array<Transaction, BLOCK_SIZE>> response;
+    request_response(requester, POP_TX, response);
 
     zmq_close(requester);
-
-    return response.buffer;
+    return response.data;
 }
 
 int Validator::submit_block(Block block) {
-    ReceiveBuffer res_buf;
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-
     zmq_connect(requester, metronome.c_str());
 
-    auto req_buf = serialize_message(block, SUBMIT_BLOCK);
-    zmq_send(requester, req_buf.data(), req_buf.size(), 0);
-
-    zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
-    auto response = deserialize_message<NullMessage>(res_buf);
+    Message<NullMessage> response;
+    request_response(requester, block, SUBMIT_BLOCK, response);
 
     zmq_close(requester);
-
     return response.type == STATUS_GOOD ? 0 : -1;
 }
