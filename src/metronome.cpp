@@ -46,7 +46,6 @@ void Metronome::submit_empty_block() {
         .transactions = std::array<Transaction, BLOCK_SIZE>()
     };
 
-
     if(submit_block(empty_block) < 0) {
         printf("Empty block rejected from blockchain.\n");
         return;
@@ -57,7 +56,6 @@ void Metronome::submit_empty_block() {
     curr_solved_time = empty_block.header.timestamp;
 
     printf("Empty successfully submitted!\n");
-
 }
 
 void Metronome::update_difficulty(bool timed_out) {
@@ -72,10 +70,12 @@ void Metronome::update_difficulty(bool timed_out) {
         std::unique_lock<std::mutex> diff_lock(diff_mutex);
         difficulty--;
         printf("Block not solved in time. Difficulty decreased to %d.\n", difficulty);
-    } else if(solved_time > std::chrono::microseconds(BLOCK_TIME / 2).count()) {
+    } else if(solved_time < BLOCK_TIME / 2 * 1000000) {
         std::unique_lock<std::mutex> diff_lock(diff_mutex);
         difficulty++;
         printf("Block solved in %.3fs. Difficulty increased to %d.\n", float(solved_time) / 1000000, difficulty);
+    } else {
+        printf("Block solved in %.3fs. Difficulty remains at %d.\n", float(solved_time) / 1000000, difficulty);
     }
 }
 

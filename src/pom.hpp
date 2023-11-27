@@ -13,7 +13,7 @@ class ProofOfMemory : public IConsensusModel {
         std::array<std::pair<Blake3Hash, Blake3Hash>, (1<<30) / BLAKE3_OUT_LEN> hashes;
         struct Wallet wallet;
     public:
-        Blake3Hash solve_hash(Blake3Hash hash, int difficulty);
+        Blake3Hash solve_hash(Blake3Hash hash, uint32_t difficulty);
         void gen_hashes();
         ProofOfMemory(Wallet wallet);
 };

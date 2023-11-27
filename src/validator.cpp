@@ -51,7 +51,7 @@ void Validator::start(std::string address) {
     }
 }
 
-Block Validator::create_block(BlockHeader prev_block, int difficulty, Blake3Hash solution) {
+Block Validator::create_block(BlockHeader prev_block, uint32_t difficulty, Blake3Hash solution) {
     auto txs = request_txs();
 
     // TODO: add reward to txs
@@ -62,7 +62,8 @@ Block Validator::create_block(BlockHeader prev_block, int difficulty, Blake3Hash
             .hash = solution,
             .prev_hash = prev_block.hash,
             .difficulty = difficulty,
-            .timestamp = get_timestamp()
+            .timestamp = get_timestamp(),
+            .id = prev_block.id + 1,
         },
         txs
     };
@@ -86,11 +87,11 @@ BlockHeader Validator::request_block_header() {
     return response.data;
 }
 
-int Validator::request_difficulty() {
+uint32_t Validator::request_difficulty() {
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
     zmq_connect(requester, metronome.c_str());
 
-    Message<int> response;
+    Message<uint32_t> response;
     request_response(requester, QUERY_DIFFICULTY, response);
 
     zmq_close(requester);

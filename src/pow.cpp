@@ -13,7 +13,7 @@
 #include "../external/blake3/blake3.h"
 #include "pow.hpp"
 
-static bool check_solution(Blake3Hash result, int difficulty) {
+static bool check_solution(Blake3Hash result, uint32_t difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size())
@@ -32,7 +32,7 @@ static bool check_solution(Blake3Hash result, int difficulty) {
     return correct >= difficulty;
 }
 
-Blake3Hash ProofOfWork::solve_hash(Blake3Hash prev_hash, int difficulty) {
+Blake3Hash ProofOfWork::solve_hash(Blake3Hash prev_hash, uint32_t difficulty) {
     uint64_t nonce = 0;
     uint8_t* nonce_buf;
     Blake3Hash base, solution, result;

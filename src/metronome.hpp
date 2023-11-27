@@ -23,7 +23,7 @@ class Metronome {
     private:
         uint64_t prev_solved_time;
         uint64_t curr_solved_time;
-        int difficulty;
+        uint32_t difficulty;
         std::mutex diff_mutex;
         std::mutex block_mutex;
         std::condition_variable block_timer;

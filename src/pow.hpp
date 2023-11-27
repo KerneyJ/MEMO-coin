@@ -9,5 +9,5 @@
 
 class ProofOfWork : public IConsensusModel {
     public:
-        Blake3Hash solve_hash(Blake3Hash hash, int difficulty);
+        Blake3Hash solve_hash(Blake3Hash hash, uint32_t difficulty);
 };

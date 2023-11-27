@@ -22,10 +22,10 @@ class Validator {
         std::string tx_pool;
         IConsensusModel* consensus;
         Wallet wallet;
-        Block create_block(BlockHeader bh, int difficulty, Blake3Hash hash);
+        Block create_block(BlockHeader bh, uint32_t difficulty, Blake3Hash hash);
         int submit_block(Block block);
         BlockHeader request_block_header();
-        int request_difficulty();
+        uint32_t request_difficulty();
         std::array<Transaction, BLOCK_SIZE> request_txs();
     public:
         Validator(std::string, std::string, std::string, IConsensusModel*, Wallet);

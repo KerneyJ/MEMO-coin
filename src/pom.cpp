@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "pom.hpp"
 
-static bool check_solution(Blake3Hash result, int difficulty) {
+static bool check_solution(Blake3Hash result, uint32_t difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size())
@@ -75,7 +75,7 @@ void ProofOfMemory::gen_hashes(){
 }
 
 
-Blake3Hash ProofOfMemory::solve_hash(Blake3Hash prev_hash, int difficulty) {
+Blake3Hash ProofOfMemory::solve_hash(Blake3Hash prev_hash, uint32_t difficulty) {
     blake3_hasher hasher;
     Blake3Hash h, result;
     // for now search for hash linearly through the array
