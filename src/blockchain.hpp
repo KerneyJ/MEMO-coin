@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "keys.hpp"
 #include "server.hpp"
 #include "block.hpp"
 
@@ -9,7 +10,7 @@ class BlockChain {
     private:
         Server server;
         std::vector<Block> blocks;
-        std::unordered_map<Ed25519Key, uint32_t> ledger;
+        std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         void sync_bal(Block b);
         uint32_t get_balance(Ed25519Key pubkey);
         int add_block(Block block);
