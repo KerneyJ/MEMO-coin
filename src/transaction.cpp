@@ -8,6 +8,7 @@
 #include "transaction.hpp"
 #include "keys.hpp"
 #include "wallet.hpp"
+#include "config.hpp"
 #include "utils.hpp"
 #include "messages.hpp"
 
@@ -75,13 +76,17 @@ int submit_transaction(Transaction tx, std::string tx_pool) {
 
 Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
     ReceiveBuffer res_buf;
+    Wallet wallet;
+
+    load_wallet(wallet);
+    std::pair<Ed25519Key, uint64_t> tx_key = { wallet.pub_key, id };
 
     void *context = zmq_ctx_new ();
     void *requester = zmq_socket (context, ZMQ_REQ);
 
     zmq_connect (requester, tx_pool.c_str());
 
-    auto req_buf = serialize_message(id, QUERY_TX_STATUS);
+    auto req_buf = serialize_message(tx_key, QUERY_TX_STATUS);
     zmq_send (requester, req_buf.data(), req_buf.size(), 0);
 
     zmq_recv (requester, res_buf.data(), res_buf.size(), 0);

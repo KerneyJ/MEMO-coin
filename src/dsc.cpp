@@ -128,9 +128,10 @@ int run_wallet(std::vector<std::string> args) {
 
 int run_pool(std::vector<std::string> args) {
     printf("Starting transaction pool.\n");
-    std::string address = get_tx_pool_address();
-    TxPool tx_pool = TxPool();
-    tx_pool.start(address);
+    std::string pool_address = get_tx_pool_address();
+    std::string bc_address = get_blockchain_address();
+    TxPool tx_pool = TxPool(bc_address);
+    tx_pool.start(pool_address);
     return 0;
 }
 

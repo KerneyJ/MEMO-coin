@@ -4,6 +4,8 @@
 #include <queue>
 #include <stdexcept>
 #include <system_error>
+#include <unordered_map>
+#include <utility>
 #include <zmq.h>
 
 #include "defs.hpp"
@@ -11,7 +13,9 @@
 #include "transaction.hpp"
 #include "tx_pool.hpp"
 
-TxPool::TxPool() {}
+TxPool::TxPool(std::string _blockchain) {
+    blockchain = _blockchain;
+}
 
 void TxPool::start(std::string address) {
 	auto fp = std::bind(&TxPool::request_handler, this, std::placeholders::_1, std::placeholders::_2);
@@ -37,7 +41,8 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
     }
 
     printf("Signature valid, adding transaction...\n");
-    transactions.push(tx);
+    tx_queue.push_back(tx);
+    submitted_txs.insert({ {tx.src, tx.id}, tx});
 
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
@@ -49,20 +54,56 @@ void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
 
     // TODO: very inefficient, queue with bulk pop would perform better
     // Only take block size - 1 so there is room for the reward
-    for(int i = 0; i < BLOCK_SIZE - 1 && !transactions.empty(); i++) {
-        txs[i] = transactions.front();
-        transactions.pop();
+    for(int i = 0; i < BLOCK_SIZE - 1 && !tx_queue.empty(); i++) {
+        txs[i] = tx_queue.front();
+        tx_queue.erase(tx_queue.begin());
+        submitted_txs.erase({txs[i].src, txs[i].id});
     }
 
-    // TODO: add unconfirmed queue
+    // insert into unconfirmed tx list
+    for(auto tx : txs) {
+        unconfirmed_txs.insert({ {tx.src, tx.id}, tx});
+    }
 
     auto bytes = serialize_message(txs, STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
 void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
+    auto tx_key = deserialize_payload<std::pair<Ed25519Key, uint64_t>>(data);
+
+    if(submitted_txs.find(tx_key) != submitted_txs.end()) {
+        auto bytes = serialize_message(Transaction::SUBMITTED, STATUS_GOOD);
+        zmq_send (receiver, bytes.data(), bytes.size(), 0);
+        return;
+    }
+
+    if(unconfirmed_txs.find(tx_key) != unconfirmed_txs.end()) {
+        auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
+        zmq_send (receiver, bytes.data(), bytes.size(), 0);
+        return;
+    }
+
     auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    return;
+
+    // TODO: uncomment when blockchain is usable
+
+    // ReceiveBuffer res_buf;
+    // void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
+    // zmq_connect(requester, blockchain.c_str());
+
+    // auto req_buf = serialize_message(0, QUERY_BAL);
+    // zmq_send(requester, req_buf.data(), req_buf.size(), 0);
+
+    // zmq_recv(requester, res_buf.data(), res_buf.size(), 0);
+    // auto response = deserialize_message<Transaction::Status>(res_buf);
+
+    // zmq_close(requester);
+
+    // auto bytes = serialize_message(response.buffer, STATUS_GOOD);
+    // zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
 void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {

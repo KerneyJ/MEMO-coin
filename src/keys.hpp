@@ -7,6 +7,8 @@
 
 #include "defs.hpp"
 
+#pragma once
+
 struct Ed25519KeyHash {
     std::size_t operator () (Ed25519Key const &v) const
     {
