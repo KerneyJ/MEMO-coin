@@ -1,6 +1,3 @@
-#include "consensus.hpp"
-#include "pom.hpp"
-#include "pow.hpp"
 #include <cstddef>
 #include <cstdio>
 #include <exception>
@@ -20,6 +17,10 @@ extern "C" {
 #include "transaction.hpp"
 #include "tx_pool.hpp"
 #include "validator.hpp"
+#include "consensus.hpp"
+#include "metronome.hpp"
+#include "pom.hpp"
+#include "pow.hpp"
 
 int cl_wallet_help() {
     printf("Help menu for Wallet, supported commands:\n");
@@ -144,7 +145,7 @@ int run_validator(std::vector<std::string> args) {
     load_wallet(wallet);
 
     IConsensusModel* model;
-    
+
     if(consensus_type == "pow") {
         model = new ProofOfWork();
     } else if (consensus_type == "pom") {
@@ -161,8 +162,12 @@ int run_validator(std::vector<std::string> args) {
 }
 
 int run_metronome(std::vector<std::string> args) {
-    printf("Not implemented yet.\n");
-    return -1;
+    printf("Starting metronome.\n");
+    std::string blockchain = get_blockchain_address();
+    std::string address = get_metronome_address();
+    Metronome metronome = Metronome(blockchain);
+    metronome.start(address);
+    return 0;
 }
 
 int run_blockchain(std::vector<std::string> args) {

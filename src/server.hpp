@@ -22,4 +22,5 @@ class Server {
         Server();
         ~Server();
         int start(std::string address, msg_func message_handler, bool blocking = true);
+        void* get_context();
 };

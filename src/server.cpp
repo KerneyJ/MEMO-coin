@@ -37,7 +37,7 @@ void Server::server_loop(void* context, msg_func message_handler, volatile sig_a
 int Server::start(std::string address, msg_func message_handler, bool blocking) {
 	int rc;
 
-	printf("Initializing server.\n");
+	printf("Initializing server at %s.\n", address.c_str());
 
     router = zmq_socket (context, ZMQ_ROUTER);
     rc = zmq_bind (router, address.c_str());
@@ -65,6 +65,10 @@ int Server::start(std::string address, msg_func message_handler, bool blocking) 
     }
 
     return 0;
+}
+
+void* Server::get_context() {
+    return context;
 }
 
 Server::Server() {

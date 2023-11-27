@@ -8,7 +8,6 @@ struct Block;
 struct BlockHeader;
 
 struct BlockHeader {
-    Block* prev_block;
     Blake3Hash hash;
     Blake3Hash prev_hash;
     int difficulty;
