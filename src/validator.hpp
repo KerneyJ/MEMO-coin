@@ -26,7 +26,7 @@ class Validator {
         int submit_block(Block block);
         BlockHeader request_block_header(BlockHeader);
         uint32_t request_difficulty();
-        std::array<Transaction, BLOCK_SIZE> request_txs();
+        std::vector<Transaction> request_txs();
     public:
         Validator(std::string, std::string, std::string, IConsensusModel*, Wallet);
         ~Validator();

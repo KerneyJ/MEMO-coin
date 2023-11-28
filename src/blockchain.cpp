@@ -64,7 +64,7 @@ void BlockChain::load_genesis(){
     tx.dest = "AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby";
     tx.amount = 50000;
     tx.timestamp = get_timestamp();
-    tx.signature = "A";
+    tx.signature = ;
     tx.id = 1;
 
     std::array<Transaction, BLOCK_SIZE> txs;

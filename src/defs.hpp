@@ -8,7 +8,7 @@
 
 #define BLOCK_SIZE 100
 #define BLOCK_TIME 6
-#define MIN_DIFFICULTY 25
+#define MIN_DIFFICULTY 20
 #define MINER_REWARD 50
 
 typedef std::array<uint8_t, BLAKE3_OUT_LEN> Blake3Hash;

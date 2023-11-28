@@ -1,9 +1,11 @@
 #include <string>
 
+#include "block.hpp"
 #include "wallet.hpp"
 
 #define CONFIG_FILE "dsc-config.yaml"
 #define PRIVATE_KEY_FILE "dsc-key.yaml"
+#define GENESIS_FILE "genesis.yaml"
 
 // Wallet config
 
@@ -33,3 +35,4 @@ std::string get_metronome_threads();
 
 std::string get_blockchain_address();
 std::string get_blockchain_threads();
+Block get_genesis_block();

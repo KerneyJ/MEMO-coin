@@ -43,7 +43,10 @@ void Validator::start(std::string address) {
     while(true) {
         auto curr_block = request_block_header(last_block);
         auto difficulty = request_difficulty();
-        auto solution = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME);
+        auto solution = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME * 1000000);
+
+        // TODO: check if timed out
+
         auto block = create_block(curr_block, solution.first, solution.second, difficulty);
         
         int status = submit_block(block);
@@ -62,7 +65,8 @@ Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Has
     auto txs = request_txs();
 
     // Add reward for validator, last slot is left empty by TxPool
-    txs[txs.size() - 1] = create_reward_transaction(wallet);
+    Transaction reward = create_reward_transaction(wallet);
+    txs.push_back(reward);
 
     Block new_block = {
         {
@@ -80,6 +84,8 @@ Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Has
 }
 
 BlockHeader Validator::request_block_header(BlockHeader last_block) {
+    return {.timestamp = get_timestamp()};
+
     const int attempts = 12;
     const int timeout = 500;
     
@@ -113,11 +119,11 @@ uint32_t Validator::request_difficulty() {
     return response.data;
 }
 
-std::array<Transaction, BLOCK_SIZE> Validator::request_txs() {
+std::vector<Transaction> Validator::request_txs() {
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
     zmq_connect(requester, tx_pool.c_str());
 
-    Message<std::array<Transaction, BLOCK_SIZE>> response;
+    Message<std::vector<Transaction>> response;
     request_response(requester, POP_TX, response);
 
     zmq_close(requester);
