@@ -13,6 +13,7 @@
 Metronome::Metronome(std::string _blockchain) {
     blockchain = _blockchain;
     difficulty = MIN_DIFFICULTY;
+    last_block = request_last_block();
 }
 
 void Metronome::start(std::string address) {
@@ -21,9 +22,14 @@ void Metronome::start(std::string address) {
 	if(server.start(address, fp, false) < 0)
 		throw std::runtime_error("Server could not bind.");
 
+    std::cv_status status;
+
     while(true) {
+        printf("Waiting for block %d.\n", last_block.id + 1);
+
         std::unique_lock<std::mutex> lock(block_mutex);
-        auto status = block_timer.wait_for(lock, std::chrono::seconds(BLOCK_TIME));
+        status = block_timer.wait_for(lock, std::chrono::seconds(BLOCK_TIME));
+
         update_difficulty(status == std::cv_status::timeout);
 
         if(status == std::cv_status::timeout) {
@@ -37,24 +43,29 @@ void Metronome::submit_empty_block() {
 
     Block empty_block = {
         .header = {
-            .hash = {},         // ?
-            .prev_hash = {},    // ?
+            .hash = {},
+            .prev_hash = last_block.hash,
             .difficulty = difficulty,
             .timestamp = get_timestamp(),
+            .id = last_block.id + 1,
         },
         .transactions = std::vector<Transaction>()
     };
+
+    // randomly init hash
+    srand(time(NULL));
+    for (int i = 0; i < empty_block.header.hash.size(); i++)
+        empty_block.header.hash[i] = rand() % 255;
 
     if(submit_block(empty_block) < 0) {
         printf("Empty block rejected from blockchain.\n");
         return;
     }
 
-    // Notify block timer a solution has been accepted
+    // update last solved block state
     prev_solved_time = curr_solved_time;
     curr_solved_time = empty_block.header.timestamp;
-
-    printf("Empty successfully submitted!\n");
+    last_block = empty_block.header;
 }
 
 void Metronome::update_difficulty(bool timed_out) {
@@ -89,11 +100,25 @@ int Metronome::submit_block(Block block) {
     return response.type == STATUS_GOOD ? 0 : -1;
 }
 
+BlockHeader Metronome::request_last_block() {
+    const int attempts = 12;
+    const int timeout = 500;
+    
+    void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
+    zmq_connect(requester, blockchain.c_str());
+
+    Message<BlockHeader> response;
+    request_response(requester, QUERY_LAST_BLOCK, response);
+
+    zmq_close(requester);
+    return response.data;
+}
+
 void Metronome::handle_block(void* receiver, MessageBuffer data) {
     auto block = deserialize_payload<Block>(data);
 
     // TODO: validate block
-    if(false) {
+    if(block.header.id != last_block.id + 1) {
         printf("Block not valid. Rejecting...\n");
 
         auto bytes = serialize_message(STATUS_BAD);
@@ -110,11 +135,11 @@ void Metronome::handle_block(void* receiver, MessageBuffer data) {
     }
 
     // Notify block timer a solution has been accepted
+    std::unique_lock<std::mutex> lock(block_mutex);
     prev_solved_time = curr_solved_time;
     curr_solved_time = block.header.timestamp;
+    last_block = block.header;
     block_timer.notify_one();
-
-    printf("Block successfully submitted!\n");
 
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);

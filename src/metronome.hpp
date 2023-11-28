@@ -24,11 +24,13 @@ class Metronome {
         std::mutex diff_mutex;
         std::mutex block_mutex;
         std::condition_variable block_timer;
+        BlockHeader last_block;
         std::string blockchain;
         Server server;
         void update_difficulty(bool timed_out);
         void submit_empty_block();
         int submit_block(Block block);
+        BlockHeader request_last_block();
         void handle_block(void* receiver, MessageBuffer data);
         void get_difficulty(void* receiver, MessageBuffer data);
         void request_handler(void* receiver, Message<MessageBuffer> request);

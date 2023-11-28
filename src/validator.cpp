@@ -41,20 +41,23 @@ void Validator::start(std::string address) {
     BlockHeader last_block;
 
     while(true) {
+        // Get next consensus problem
         auto curr_block = request_block_header(last_block);
         auto difficulty = request_difficulty();
-        auto solution = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME * 1000000);
 
-        // TODO: check if timed out
+        auto solution = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME * 1000000);
+        
+        uint64_t* bytes = (uint64_t*) solution.second.data();
+        if(bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 0)
+            continue;
 
         auto block = create_block(curr_block, solution.first, solution.second, difficulty);
         
+        printf("Submitting block %d.\n", block.header.id);
         int status = submit_block(block);
 
         if(status < 0) {
-            printf("Error submitting block.\n");
-        } else {
-            printf("Submitted block successfully!\n");
+            printf("Error submitting block %d!\n", block.header.id);
         }
 
         last_block = curr_block;
