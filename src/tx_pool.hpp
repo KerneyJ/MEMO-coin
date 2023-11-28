@@ -38,6 +38,7 @@ class TxPool {
         void pop_transactions(void* receiver, MessageBuffer request);
         void confirm_transactions(void* receiver, MessageBuffer request);
         void query_tx_status(void* receiver, MessageBuffer request);
+        void confirm_block(void* receiver, MessageBuffer request);
         void request_handler(void* receiver, Message<MessageBuffer> request);
     public:
         TxPool(std::string blockchain);

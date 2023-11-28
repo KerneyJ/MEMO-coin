@@ -9,6 +9,7 @@
 class BlockChain {
     private:
         Server server;
+        std::string txpool_address;
         std::vector<Block> blocks;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         void sync_bal(Block b);
@@ -19,6 +20,6 @@ class BlockChain {
         void request_handler(void* receiver, Message<MessageBuffer> request);
         void load_genesis();
     public:
-        BlockChain();
+        BlockChain(std::string txpaddr);
         void start(std::string address);
 };
