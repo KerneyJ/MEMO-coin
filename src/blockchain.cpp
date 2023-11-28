@@ -4,6 +4,7 @@
 #include <zmq.h>
 
 #include "blockchain.hpp"
+#include "transaction.hpp"
 #include "defs.hpp"
 #include "messages.hpp"
 #include "config.hpp"
@@ -44,11 +45,12 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
 
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    printf("Block added, %lu blocks\n", this->blocks.size());
 }
 
 void BlockChain::get_balance(void* receiver, MessageBuffer data) {
     auto pub_key = deserialize_payload<Ed25519Key>(data);
-    
+
     auto entry = this->ledger.find(pub_key);
     uint32_t balance = (entry == this->ledger.end()) ? 0 : entry->second;
 
@@ -56,9 +58,25 @@ void BlockChain::get_balance(void* receiver, MessageBuffer data) {
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
 }
 
-void BlockChain::last_block(void* receiver, MessageBuffer request){
+void BlockChain::last_block(void* receiver, MessageBuffer data){
     Block b = this->blocks.back();
     auto bytes = serialize_message(b, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+}
+
+void BlockChain::tx_status(void* receiver, MessageBuffer data){
+    auto tx_key = deserialize_payload<std::pair<Ed25519Key, uint64_t>>(data);
+    for(size_t nb = 0; nb < this->blocks.size(); nb++){
+        Block b = this->blocks[nb];
+        for(size_t nt = 0; nt < b.transactions.size(); nt++){
+            Transaction t = b.transactions[nt];
+            if(t.src == tx_key.first && t.id == tx_key.second){
+                auto bytes = serialize_message(Transaction::CONFIRMED, STATUS_GOOD);
+                zmq_send(receiver, bytes.data(), bytes.size(), 0);
+            }
+        }
+    }
+    auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
 }
 
@@ -76,6 +94,8 @@ void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request)
             return add_block(receiver, request.data);
         case QUERY_LAST_BLOCK:
             return last_block(receiver, request.data);
+        case QUERY_TX_STATUS:
+             return tx_status(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

@@ -78,11 +78,11 @@ void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
         return;
     }
 
-    if(unconfirmed_txs.find(tx_key) != unconfirmed_txs.end()) {
-        auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
-        return;
-    }
+    //if(unconfirmed_txs.find(tx_key) != unconfirmed_txs.end()) {
+    //    auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
+    //    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    //    return;
+    //}
 
     // TODO: delete when blockchain is usable
     // auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
