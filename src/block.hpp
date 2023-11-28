@@ -8,6 +8,7 @@ struct Block;
 struct BlockHeader;
 
 struct BlockHeader {
+    HashInput input;
     Blake3Hash hash;
     Blake3Hash prev_hash;
     uint32_t difficulty;

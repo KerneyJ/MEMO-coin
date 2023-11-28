@@ -21,6 +21,8 @@ std::string get_tx_pool_address();
 std::string get_validator_address();
 std::string get_validator_threads();
 std::string get_consensus_method();
+uint32_t get_validator_memory();
+void set_validator_fingerprint(UUID);
 
 // Metronome config
 

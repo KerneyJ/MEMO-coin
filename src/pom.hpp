@@ -1,5 +1,6 @@
-#include <array>
+#include <vector>
 #include <cstdint>
+#include <uuid/uuid.h>
 
 #include "../external/blake3/blake3.h"
 #include "defs.hpp"
@@ -10,10 +11,12 @@
 
 class ProofOfMemory : public IConsensusModel {
     private:
-        std::array<std::pair<Blake3Hash, Blake3Hash>, (1<<30) / BLAKE3_OUT_LEN> hashes;
-        struct Wallet wallet;
+        Wallet wallet;
+        UUID fingerprint;
+        std::vector<Blake3Hash> hashes;
     public:
-        Blake3Hash solve_hash(Blake3Hash hash, uint32_t difficulty);
-        void gen_hashes();
-        ProofOfMemory(Wallet wallet);
+        ProofOfMemory(Wallet wallet, UUID fingerprint);
+        std::pair<HashInput, Blake3Hash> solve_hash(Blake3Hash, uint32_t, uint64_t = UINT64_MAX);
+        bool verify_solution(HashInput, Blake3Hash, Blake3Hash, uint32_t);
+        void gen_hashes(uint32_t memory);
 };

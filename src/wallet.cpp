@@ -17,8 +17,8 @@ Wallet create_wallet() {
 }
 
 void display_wallet(Wallet& wallet) {
-    std::string pub_key = base58_encode(wallet.pub_key);
-    std::string priv_key = base58_encode(wallet.priv_key);
+    std::string pub_key = base58_encode_key(wallet.pub_key);
+    std::string priv_key = base58_encode_key(wallet.priv_key);
 
     printf("Public Key: %s\n", pub_key.c_str());
     printf("Private Key: %s\n", priv_key.c_str());

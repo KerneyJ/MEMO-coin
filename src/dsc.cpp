@@ -17,8 +17,8 @@ extern "C" {
 #include "transaction.hpp"
 #include "tx_pool.hpp"
 #include "validator.hpp"
-#include "consensus.hpp"
 #include "metronome.hpp"
+#include "consensus.hpp"
 #include "pom.hpp"
 #include "pow.hpp"
 
@@ -68,7 +68,7 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     std::string address;
     int amount, status;
     
-    dest = base58_decode(arg_address);
+    dest = base58_decode_key(arg_address);
     amount = std::stoi(arg_amount);
     load_wallet(wallet);
 
@@ -136,6 +136,7 @@ int run_pool(std::vector<std::string> args) {
 }
 
 int run_validator(std::vector<std::string> args) {
+    printf("Starting validator.\n");
     Wallet wallet;
 
     std::string val_address = get_validator_address();
@@ -150,7 +151,18 @@ int run_validator(std::vector<std::string> args) {
     if(consensus_type == "pow") {
         model = new ProofOfWork();
     } else if (consensus_type == "pom") {
-        model = new ProofOfMemory(wallet);
+        UUID fingerprint;
+        uint32_t memory;
+        ProofOfMemory* pom;
+
+        uuid_generate(fingerprint.data());
+        set_validator_fingerprint(fingerprint);
+        memory = get_validator_memory();
+
+        pom = new ProofOfMemory(wallet, fingerprint);
+        pom->gen_hashes(memory);
+
+        model = pom;
     } else {
         printf("Unknown consensus method.\n");
         return -1;

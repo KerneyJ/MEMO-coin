@@ -67,7 +67,7 @@ bool verify_signature_ed25519(Ed25519Key pub_key, Ed25519Signature signature, ui
     return is_valid;
 }
 
-std::string base58_encode(Ed25519Key key) {
+std::string base58_encode_key(Ed25519Key key) {
     size_t len = 128;
     char encoded[128];
 
@@ -77,7 +77,7 @@ std::string base58_encode(Ed25519Key key) {
     return std::string(encoded);
 }
 
-Ed25519Key base58_decode(std::string str) {
+Ed25519Key base58_decode_key(std::string str) {
     Ed25519Key key;
     size_t len = key.size();
 
@@ -85,4 +85,24 @@ Ed25519Key base58_decode(std::string str) {
         throw std::runtime_error("Failed to encode key.");
 
     return key;
+}
+
+std::string base58_encode_uuid(UUID uuid) {
+    size_t len = 128;
+    char encoded[128];
+
+    if(!b58enc(encoded, &len, uuid.data(), uuid.size()))
+        throw std::runtime_error("Failed to encode uuid.");
+
+    return std::string(encoded);
+}
+
+UUID base58_decode_uuid(std::string str) {
+    UUID uuid;
+    size_t len = uuid.size();
+
+    if(!b58tobin(uuid.data(), &len, str.c_str())) 
+        throw std::runtime_error("Failed to encode uuid.");
+
+    return uuid;
 }

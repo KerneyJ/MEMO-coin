@@ -1,4 +1,7 @@
+#include <cstdint>
 #include <fstream>
+#include <stdexcept>
+#include <string>
 #include <yaml-cpp/yaml.h>
 
 #include "wallet.hpp"
@@ -14,8 +17,8 @@ bool load_wallet(Wallet &wallet) {
     const std::string pub_key = config["wallet"]["public_key"].as<std::string>();
     const std::string priv_key = private_config["wallet"]["private_key"].as<std::string>();
 
-    wallet.pub_key = base58_decode(pub_key);
-    wallet.priv_key = base58_decode(priv_key);
+    wallet.pub_key = base58_decode_key(pub_key);
+    wallet.priv_key = base58_decode_key(priv_key);
 
     return true;
 }
@@ -24,8 +27,8 @@ bool store_wallet(Wallet &wallet) {
     YAML::Node config = YAML::LoadFile(CONFIG_FILE);
     YAML::Node private_config = YAML::LoadFile(PRIVATE_KEY_FILE);
 
-    config["wallet"]["public_key"] = base58_encode(wallet.pub_key);
-    private_config["wallet"]["private_key"] =  base58_encode(wallet.priv_key);
+    config["wallet"]["public_key"] = base58_encode_key(wallet.pub_key);
+    private_config["wallet"]["private_key"] =  base58_encode_key(wallet.priv_key);
 
     std::ofstream conf_out(CONFIG_FILE);
     std::ofstream priv_conf_out(PRIVATE_KEY_FILE);
@@ -75,6 +78,38 @@ std::string get_validator_threads() {
 std::string get_consensus_method() {
     YAML::Node config = YAML::LoadFile(CONFIG_FILE);
     return config["validator"]["consensus"].as<std::string>();
+}
+
+uint32_t get_validator_memory() {
+    int base_val, num_end;
+    std::string str_val;
+
+    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+
+    str_val = config["validator"]["memory"].as<std::string>();
+
+    if((num_end = str_val.find("Kb")) != std::string::npos) {
+        return std::stoi(str_val.substr(0, num_end)) * 1000;
+    }
+
+    if((num_end = str_val.find("Mb")) != std::string::npos) {
+        return std::stoi(str_val.substr(0, num_end)) * 1000000;
+    }
+
+    if((num_end = str_val.find("Gb")) != std::string::npos) {
+        return std::stoi(str_val.substr(0, num_end)) * 1000000000;
+    }
+
+    throw std::runtime_error("Validator memory improperly formatted.");
+}
+
+void set_validator_fingerprint(UUID fingerprint) {
+    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+
+    config["validator"]["fingerprint"] = base58_encode_uuid(fingerprint);
+
+    std::ofstream fout(CONFIG_FILE);
+    fout << config;
 }
 
 // Metronome config

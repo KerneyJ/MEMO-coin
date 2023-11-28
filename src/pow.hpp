@@ -9,5 +9,6 @@
 
 class ProofOfWork : public IConsensusModel {
     public:
-        Blake3Hash solve_hash(Blake3Hash hash, uint32_t difficulty);
+        std::pair<HashInput, Blake3Hash> solve_hash(Blake3Hash, uint32_t, uint64_t);
+        bool verify_solution(HashInput, Blake3Hash, Blake3Hash, uint32_t);
 };

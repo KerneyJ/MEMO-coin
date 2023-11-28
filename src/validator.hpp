@@ -22,7 +22,7 @@ class Validator {
         std::string tx_pool;
         IConsensusModel* consensus;
         Wallet wallet;
-        Block create_block(BlockHeader bh, uint32_t difficulty, Blake3Hash hash);
+        Block create_block(BlockHeader bh, HashInput input, Blake3Hash solution, uint32_t difficulty);
         int submit_block(Block block);
         BlockHeader request_block_header();
         uint32_t request_difficulty();

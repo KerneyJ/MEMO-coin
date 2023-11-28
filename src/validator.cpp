@@ -38,8 +38,8 @@ void Validator::start(std::string address) {
     while(true) {
         auto blockheader = request_block_header();
         auto difficulty = request_difficulty();
-        Blake3Hash solution = consensus->solve_hash(blockheader.hash, difficulty);
-        auto block = create_block(blockheader, difficulty, solution);
+        auto solution = consensus->solve_hash(blockheader.hash, difficulty);
+        auto block = create_block(blockheader, solution.first, solution.second, difficulty);
         
         int status = submit_block(block);
 
@@ -51,7 +51,7 @@ void Validator::start(std::string address) {
     }
 }
 
-Block Validator::create_block(BlockHeader prev_block, uint32_t difficulty, Blake3Hash solution) {
+Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Hash solution, uint32_t difficulty) {
     auto txs = request_txs();
 
     // TODO: add reward to txs
@@ -59,6 +59,7 @@ Block Validator::create_block(BlockHeader prev_block, uint32_t difficulty, Blake
 
     Block new_block = {
         {
+            .input = input,
             .hash = solution,
             .prev_hash = prev_block.hash,
             .difficulty = difficulty,
@@ -75,8 +76,9 @@ BlockHeader Validator::request_block_header() {
     Blake3Hash prev_hash, hash;
     hash.fill(255);
 
-    return { hash, prev_hash, 0, 0 };
+    return { {}, hash, prev_hash, 0, 0 };
 
+    // TODO: request until blockheader is 1 more than last
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
     zmq_connect(requester, blockchain.c_str());
 
@@ -88,6 +90,7 @@ BlockHeader Validator::request_block_header() {
 }
 
 uint32_t Validator::request_difficulty() {
+    return 16;
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
     zmq_connect(requester, metronome.c_str());
 

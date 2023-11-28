@@ -40,8 +40,8 @@ Transaction create_transaction(Wallet wallet, Ed25519Key dest, uint32_t amount, 
 }
 
 void display_transaction(Transaction tx) {
-    std::string src = base58_encode(tx.src);
-    std::string dest = base58_encode(tx.dest);
+    std::string src = base58_encode_key(tx.src);
+    std::string dest = base58_encode_key(tx.dest);
 
     printf("Transaction:\n");
     printf("\tsrc: %s\n", src.c_str());
