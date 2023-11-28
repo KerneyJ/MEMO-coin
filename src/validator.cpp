@@ -84,8 +84,6 @@ Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Has
 }
 
 BlockHeader Validator::request_block_header(BlockHeader last_block) {
-    return {.timestamp = get_timestamp()};
-
     const int attempts = 12;
     const int timeout = 500;
     
