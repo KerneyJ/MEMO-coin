@@ -15,6 +15,7 @@ class BlockChain {
         void add_block(void* receiver, MessageBuffer data);
         void get_balance(void* receiver, MessageBuffer request);
         void request_handler(void* receiver, Message<MessageBuffer> request);
+        void load_genesis();
     public:
         BlockChain();
         void start(std::string address);

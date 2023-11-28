@@ -39,7 +39,7 @@ Transaction create_transaction(Wallet wallet, Ed25519Key dest, uint32_t amount, 
     return tx;
 }
 
-Transaction create_transaction(Wallet wallet) {
+Transaction create_reward_transaction(Wallet wallet) {
     Transaction reward = {
         .src = {},
         .dest = wallet.pub_key,
