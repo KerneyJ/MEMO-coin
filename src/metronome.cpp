@@ -43,7 +43,7 @@ void Metronome::submit_empty_block() {
             .difficulty = difficulty,
             .timestamp = get_timestamp(),
         },
-        .transactions = std::array<Transaction, BLOCK_SIZE>()
+        .transactions = std::vector<Transaction>()
     };
 
     if(submit_block(empty_block) < 0) {

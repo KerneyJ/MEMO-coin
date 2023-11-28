@@ -135,3 +135,29 @@ std::string get_blockchain_threads() {
     YAML::Node config = YAML::LoadFile(CONFIG_FILE);
     return config["blockchain"]["address"].as<std::string>();
 }
+
+Block get_genesis_block() {
+    Block genesis;
+    YAML::Node config = YAML::LoadFile(GENESIS_FILE);
+
+    //load header
+
+    genesis.header.hash       = base58_decode_key(config["header"]["hash"].as<std::string>());
+    genesis.header.prev_hash  = base58_decode_key(config["header"]["prev_hash"].as<std::string>());
+    genesis.header.difficulty = config["header"]["difficulty"].as<uint32_t>();
+    genesis.header.timestamp  = config["header"]["timestamp"].as<uint64_t>();
+    genesis.header.id         = config["header"]["id"].as<uint32_t>();
+
+    // load transactions
+
+    // int idx = 0;
+    // for(auto node : config["transactions"]) {
+    //     auto tx = genesis.transactions[idx];
+    //     tx.src  = base58_decode_key(node["src"].as<std::string>());
+    //     tx.dest = base58_decode_key(node["dest"].as<std::string>());
+    //     tx.amount = node["amount"].as<uint32_t>();
+    //     idx++;
+    // }
+
+    return genesis;
+}

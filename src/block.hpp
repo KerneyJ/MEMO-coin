@@ -1,6 +1,7 @@
 #include "transaction.hpp"
 #include "consensus.hpp"
 #include "defs.hpp"
+#include <vector>
 
 #pragma once
 
@@ -23,5 +24,8 @@ struct BlockHeader {
 
 struct Block {
     BlockHeader header;
-    std::array<Transaction, BLOCK_SIZE> transactions;
+    std::vector<Transaction> transactions;
 };
+
+void display_block_header(BlockHeader header);
+void display_block(Block header);

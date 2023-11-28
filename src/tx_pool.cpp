@@ -50,12 +50,12 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
 
 void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
-    std::array<Transaction, BLOCK_SIZE> txs;
+    std::vector<Transaction> txs;
 
     // TODO: very inefficient, queue with bulk pop would perform better
     // Only take block size - 1 so there is room for the reward
     for(int i = 0; i < BLOCK_SIZE - 1 && !tx_queue.empty(); i++) {
-        txs[i] = tx_queue.front();
+        txs.push_back(tx_queue.front());
 
         //remove from queue & submitted list
         tx_queue.erase(tx_queue.begin());
