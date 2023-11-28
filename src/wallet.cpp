@@ -3,6 +3,7 @@
 #include <fstream>
 #include <zmq.h>
 
+#include "config.hpp"
 #include "defs.hpp"
 #include "transaction.hpp"
 #include "wallet.hpp"
@@ -26,6 +27,8 @@ void display_wallet(Wallet& wallet) {
 
 int query_balance(std::string blockchain_node) {
     Wallet wallet;
+
+   load_wallet(wallet);
 
     void* context = zmq_ctx_new();
     void* requester = zmq_socket(context, ZMQ_REQ);

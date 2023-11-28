@@ -22,19 +22,15 @@ void BlockChain::start(std::string address) {
 }
 
 void BlockChain::sync_bal(Block b){
-    printf("sync bal on %lu transaction\n", b.transactions.size());
     for(size_t nt = 0; nt < b.transactions.size(); nt++){
-        printf("syncing transaction %lu\n", nt);
         Transaction t = b.transactions[nt];
         auto srcbal = this->ledger.find(t.src);
         auto dstbal = this->ledger.find(t.dest);
         if(srcbal != this->ledger.end()){
             this->ledger[t.src] = srcbal->second - t.amount;
-            printf("nonnegative balance\n");
         }
         else {// this should never happend
             this->ledger.emplace(t.src, -t.amount);
-            printf("negative balance\n");
         }
         if(dstbal != this->ledger.end()){
             this->ledger[t.dest] = dstbal->second + t.amount;
@@ -42,9 +38,6 @@ void BlockChain::sync_bal(Block b){
         else{
             this->ledger.emplace(t.dest, t.amount);
         }
-        for(int i = 0; i < t.dest.size(); i++)
-            printf("%c", t.dest[i]);
-        printf(" new balance of %lu\n", this->ledger[t.dest]);
     }
 }
 
@@ -72,7 +65,6 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
 
 void BlockChain::get_balance(void* receiver, MessageBuffer data) {
     auto pub_key = deserialize_payload<Ed25519Key>(data);
-
     auto entry = this->ledger.find(pub_key);
     uint32_t balance = (entry == this->ledger.end()) ? 0 : entry->second;
 
