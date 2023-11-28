@@ -13,8 +13,9 @@ class BlockChain {
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         void sync_bal(Block b);
         void add_block(void* receiver, MessageBuffer data);
-        void get_balance(void* receiver, MessageBuffer request);
-        void last_block(void* receiver, MessageBuffer request);
+        void get_balance(void* receiver, MessageBuffer data);
+        void last_block(void* receiver, MessageBuffer data);
+        void tx_status(void *receiver, MessageBuffer data);
         void request_handler(void* receiver, Message<MessageBuffer> request);
         void load_genesis();
     public:
