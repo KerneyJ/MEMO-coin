@@ -52,20 +52,21 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
 
 void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
-    std::vector<Transaction> txs;
 
-    // TODO: very inefficient, queue with bulk pop would perform better
     // Only take block size - 1 so there is room for the reward
-    for(int i = 0; i < BLOCK_SIZE - 1 && !submitted_queue.empty(); i++) {
-        txs.push_back(submitted_queue.front());
+    auto begin = submitted_queue.begin();
+    auto end = BLOCK_SIZE - 1 <= submitted_queue.size() ? begin + BLOCK_SIZE - 1 : submitted_queue.end();
+    std::vector<Transaction> txs(begin, end);
 
-        //remove from queue & submitted list
+    // Update queues & sets
+    for(auto tx : txs) {
+        // remove from queue & submitted list
         submitted_queue.pop_front();
-        submitted_set.erase(txs[i]);
+        submitted_set.erase(tx);
 
         // insert into unconfirmed tx list
-        unconfirmed_queue.push_back(txs[i]);
-        unconfirmed_set.insert(txs[i]);
+        unconfirmed_queue.push_back(tx);
+        unconfirmed_set.insert(tx);
     }
 
     auto bytes = serialize_message(txs, STATUS_GOOD);
