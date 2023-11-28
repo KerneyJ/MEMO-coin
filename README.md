@@ -90,3 +90,16 @@ make install
 * Alpaca (serialization)
 * ZMQ
 * yaml-cpp
+
+# apt-get install these
+* libssl-dev
+* libzmq3-dev
+* libyaml-cpp-dev
+* uuid-dev
+
+# install alpaca: https://github.com/p-ranav/alpaca/tree/master#building-installing-and-testing
+
+
+
+
+
