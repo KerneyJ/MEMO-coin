@@ -9,7 +9,9 @@
 #include "messages.hpp"
 #include "config.hpp"
 
-BlockChain::BlockChain() {}
+BlockChain::BlockChain(std::string txpaddr) {
+    this->txpool_address = txpaddr;
+}
 
 void BlockChain::start(std::string address) {
     this->load_genesis();
@@ -24,15 +26,18 @@ void BlockChain::sync_bal(Block b){
         Transaction t = b.transactions[nt];
         auto srcbal = this->ledger.find(t.src);
         auto dstbal = this->ledger.find(t.dest);
-        if(srcbal != this->ledger.end())
+        if(srcbal != this->ledger.end()){
             this->ledger[t.src] = srcbal->second - t.amount;
-        else
-            ; // this should never happend
-
-        if(dstbal != this->ledger.end())
+        }
+        else {// this should never happend
+            this->ledger.emplace(t.src, -t.amount);
+        }
+        if(dstbal != this->ledger.end()){
             this->ledger[t.dest] = dstbal->second + t.amount;
-        else
+        }
+        else{
             this->ledger.emplace(t.dest, t.amount);
+        }
     }
 }
 
@@ -42,15 +47,24 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
     // TODO ensure block is valid
     // TODO send the list of transactions in the accepted block the the tx pool
     this->blocks.push_back(block);
-
+    sync_bal(block);
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
     printf("Block added, %lu blocks\n", this->blocks.size());
+
+    void* context = zmq_ctx_new();
+    void* requester = zmq_socket(context, ZMQ_REQ);
+
+    zmq_connect(requester, txpool_address.c_str());
+    Message<NullMessage> response;
+    request_response(requester, block, CONFIRM_BLOCK, response);
+
+    zmq_close(requester);
+    zmq_ctx_destroy(context);
 }
 
 void BlockChain::get_balance(void* receiver, MessageBuffer data) {
     auto pub_key = deserialize_payload<Ed25519Key>(data);
-
     auto entry = this->ledger.find(pub_key);
     uint32_t balance = (entry == this->ledger.end()) ? 0 : entry->second;
 
@@ -73,10 +87,11 @@ void BlockChain::tx_status(void* receiver, MessageBuffer data){
             if(t.src == tx_key.first && t.id == tx_key.second){
                 auto bytes = serialize_message(Transaction::CONFIRMED, STATUS_GOOD);
                 zmq_send(receiver, bytes.data(), bytes.size(), 0);
+                return;
             }
         }
     }
-    auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
+    auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
 }
 

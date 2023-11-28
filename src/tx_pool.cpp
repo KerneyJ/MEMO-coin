@@ -133,6 +133,8 @@ void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
             return add_transaction(receiver, request.data);
         case QUERY_TX_STATUS:
             return query_tx_status(receiver, request.data);
+        case CONFIRM_BLOCK:
+            return confirm_transactions(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
