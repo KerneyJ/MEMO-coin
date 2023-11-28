@@ -56,9 +56,16 @@ void BlockChain::get_balance(void* receiver, MessageBuffer data) {
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
 }
 
+void BlockChain::last_block(void* receiver, MessageBuffer request){
+    Block b = this->blocks.back();
+    auto bytes = serialize_message(b, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+}
+
 void BlockChain::load_genesis(){
     Block genesis = get_genesis_block();
     this->blocks.push_back(genesis);
+    printf("Genesis block loaded\n");
 }
 
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {
@@ -67,6 +74,8 @@ void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request)
             return get_balance(receiver, request.data);
         case SUBMIT_BLOCK:
             return add_block(receiver, request.data);
+        case QUERY_LAST_BLOCK:
+            return last_block(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

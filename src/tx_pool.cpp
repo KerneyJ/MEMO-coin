@@ -85,20 +85,20 @@ void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
     }
 
     // TODO: delete when blockchain is usable
-    auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
-    zmq_send (receiver, bytes.data(), bytes.size(), 0);
-    return;
-
-    // void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
-    // zmq_connect(requester, blockchain.c_str());
-
-    // Message<Transaction::Status> response;
-    // request_response(requester, tx_key, QUERY_TX_STATUS, response);
-
-    // zmq_close(requester);
-
-    // auto bytes = serialize_message(response.data, STATUS_GOOD);
+    // auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
     // zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    // return;
+
+    void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
+    zmq_connect(requester, blockchain.c_str());
+
+    Message<Transaction::Status> response;
+    request_response(requester, tx_key, QUERY_TX_STATUS, response);
+
+    zmq_close(requester);
+
+    auto bytes = serialize_message(response.data, STATUS_GOOD);
+    zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
 void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
