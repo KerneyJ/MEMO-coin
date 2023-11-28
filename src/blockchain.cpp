@@ -6,13 +6,12 @@
 #include "blockchain.hpp"
 #include "defs.hpp"
 #include "messages.hpp"
-#include "wallet.hpp"
-#include "transaction.hpp"
-#include "utils.hpp"
+#include "config.hpp"
 
 BlockChain::BlockChain() {}
 
 void BlockChain::start(std::string address) {
+    this->load_genesis();
     auto fp = std::bind(&BlockChain::request_handler, this, std::placeholders::_1, std::placeholders::_2);
 
     if(server.start(address, fp) < 0)
@@ -58,29 +57,7 @@ void BlockChain::get_balance(void* receiver, MessageBuffer data) {
 }
 
 void BlockChain::load_genesis(){
-    // pubkey AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby
-    Transaction tx;
-    tx.src = NULL;
-    tx.dest = "AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby";
-    tx.amount = 50000;
-    tx.timestamp = get_timestamp();
-    tx.signature = ;
-    tx.id = 1;
-
-    std::array<Transaction, BLOCK_SIZE> txs;
-    txs[0] = tx;
-
-    Block genesis = {
-        {
-            .input = NULL,
-            .hash = NULL,
-            .prev_hash = NULL,
-            .difficulty = 1,
-            .timestamp = get_timestamp(),
-            .id = 1,
-        },
-        txs,
-    };
+    Block genesis = get_genesis_block();
     this->blocks.push_back(genesis);
 }
 
