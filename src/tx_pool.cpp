@@ -125,6 +125,19 @@ void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
+
+//Count the number of transactions in the transaction pool.
+void TxPool::query_tx_count(void* receiver, MessageBuffer data) {
+    int tx_count = tx_queue.size();
+
+    //Send the data back to the monitor
+
+    auto bytes = serialize_message(tx_count, STATUS_GOOD);
+    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
+
 void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case POP_TX:
@@ -133,6 +146,8 @@ void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
             return add_transaction(receiver, request.data);
         case QUERY_TX_STATUS:
             return query_tx_status(receiver, request.data);
+        case QUERY_TX_COUNT: 
+            return query_tx_count(receiver, request.data);
         case CONFIRM_BLOCK:
             return confirm_transactions(receiver, request.data);
         default:
