@@ -93,8 +93,9 @@ BlockHeader Validator::request_block_header(BlockHeader last_block) {
     for(int i = 0; i < attempts; i++) {
         Message<BlockHeader> response;
         request_response(requester, QUERY_LAST_BLOCK, response);
-
-        if(response.data.id > last_block.id) {
+        // printf("if %lu > %lu\n", response.data.id, last_block.id);
+        // FIXME there must be a better way than checking if response data is 0, this is a huge security meme
+        if(response.data.id > last_block.id || response.data.id == 0) {
             zmq_close(requester);
             return response.data;
         }

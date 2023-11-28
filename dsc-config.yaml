@@ -1,6 +1,6 @@
 wallet:
   public_key: AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby
-  nonce: 19
+  nonce: 21
 tx_pool:
   threads: 2
   address: tcp://127.0.0.1:10001
