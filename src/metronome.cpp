@@ -80,7 +80,6 @@ void Metronome::update_difficulty(bool timed_out) {
 }
 
 int Metronome::submit_block(Block block) {
-    return 0;
     void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
     zmq_connect(requester, blockchain.c_str());
 

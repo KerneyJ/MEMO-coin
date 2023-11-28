@@ -1,7 +1,11 @@
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <ctime>
 #include <functional>
+#include <ratio>
+#include <stdexcept>
+#include <thread>
 #include <vector>
 #include <string>
 #include <zmq.h>
@@ -34,12 +38,13 @@ Validator::~Validator() {
 }
 
 void Validator::start(std::string address) {
-    // TODO: error handling & validation
+    BlockHeader last_block;
+
     while(true) {
-        auto blockheader = request_block_header();
+        auto curr_block = request_block_header(last_block);
         auto difficulty = request_difficulty();
-        auto solution = consensus->solve_hash(blockheader.hash, difficulty);
-        auto block = create_block(blockheader, solution.first, solution.second, difficulty);
+        auto solution = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME);
+        auto block = create_block(curr_block, solution.first, solution.second, difficulty);
         
         int status = submit_block(block);
 
@@ -48,14 +53,16 @@ void Validator::start(std::string address) {
         } else {
             printf("Submitted block successfully!\n");
         }
+
+        last_block = curr_block;
     }
 }
 
 Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Hash solution, uint32_t difficulty) {
     auto txs = request_txs();
 
-    // TODO: add reward to txs
-    // TODO: variable difficulty
+    // Add reward for validator, last slot is left empty by TxPool
+    txs[txs.size() - 1] = create_reward_transaction(wallet);
 
     Block new_block = {
         {
@@ -72,25 +79,30 @@ Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Has
     return new_block;
 }
 
-BlockHeader Validator::request_block_header() {
-    Blake3Hash prev_hash, hash;
-    hash.fill(255);
-
-    return { {}, hash, prev_hash, 0, 0 };
-
-    // TODO: request until blockheader is 1 more than last
+BlockHeader Validator::request_block_header(BlockHeader last_block) {
+    const int attempts = 12;
+    const int timeout = 500;
+    
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
     zmq_connect(requester, blockchain.c_str());
 
-    Message<BlockHeader> response;
-    request_response(requester, QUERY_LAST_BLOCK, response);
+    for(int i = 0; i < attempts; i++) {
+        Message<BlockHeader> response;
+        request_response(requester, QUERY_LAST_BLOCK, response);
+
+        if(response.data.id > last_block.id) {
+            zmq_close(requester);
+            return response.data;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    }
 
     zmq_close(requester);
-    return response.data;
+    throw std::runtime_error("Could not get new blocks.");
 }
 
 uint32_t Validator::request_difficulty() {
-    return 16;
     void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
     zmq_connect(requester, metronome.c_str());
 

@@ -7,6 +7,9 @@
 #pragma once
 
 #define BLOCK_SIZE 100
+#define BLOCK_TIME 6
+#define MIN_DIFFICULTY 25
+#define MINER_REWARD 50
 
 typedef std::array<uint8_t, BLAKE3_OUT_LEN> Blake3Hash;
 typedef std::array<uint8_t, 32> Ed25519Key;

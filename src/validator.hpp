@@ -24,7 +24,7 @@ class Validator {
         Wallet wallet;
         Block create_block(BlockHeader bh, HashInput input, Blake3Hash solution, uint32_t difficulty);
         int submit_block(Block block);
-        BlockHeader request_block_header();
+        BlockHeader request_block_header(BlockHeader);
         uint32_t request_difficulty();
         std::array<Transaction, BLOCK_SIZE> request_txs();
     public:

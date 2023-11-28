@@ -39,6 +39,22 @@ Transaction create_transaction(Wallet wallet, Ed25519Key dest, uint32_t amount, 
     return tx;
 }
 
+Transaction create_transaction(Wallet wallet) {
+    Transaction reward = {
+        .src = {},
+        .dest = wallet.pub_key,
+        .signature = {},
+        .id = 0,
+        .amount = MINER_REWARD,
+        .timestamp = get_timestamp(),
+    };
+
+    reward.src.fill(0);
+    reward.signature.fill(0);
+
+    return reward;
+}
+
 void display_transaction(Transaction tx) {
     std::string src = base58_encode_key(tx.src);
     std::string dest = base58_encode_key(tx.dest);

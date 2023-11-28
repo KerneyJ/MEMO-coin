@@ -16,9 +16,6 @@
 
 #pragma once
 
-#define BLOCK_TIME 6
-#define MIN_DIFFICULTY 20
-
 class Metronome {
     private:
         uint64_t prev_solved_time;
