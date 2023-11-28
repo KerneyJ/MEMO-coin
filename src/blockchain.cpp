@@ -52,7 +52,7 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
     printf("Block added, %lu blocks\n", this->blocks.size());
 
-    void* context = zmq_ctx_new();
+    void* context = server.get_context();
     void* requester = zmq_socket(context, ZMQ_REQ);
 
     zmq_connect(requester, txpool_address.c_str());
@@ -60,7 +60,6 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
     request_response(requester, block, CONFIRM_BLOCK, response);
 
     zmq_close(requester);
-    zmq_ctx_destroy(context);
 }
 
 void BlockChain::get_balance(void* receiver, MessageBuffer data) {
