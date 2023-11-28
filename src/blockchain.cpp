@@ -6,6 +6,9 @@
 #include "blockchain.hpp"
 #include "defs.hpp"
 #include "messages.hpp"
+#include "wallet.hpp"
+#include "transaction.hpp"
+#include "utils.hpp"
 
 BlockChain::BlockChain() {}
 
@@ -52,6 +55,33 @@ void BlockChain::get_balance(void* receiver, MessageBuffer data) {
 
     auto bytes = serialize_message(balance, STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
+}
+
+void BlockChain::load_genesis(){
+    // pubkey AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby
+    Transaction tx;
+    tx.src = NULL;
+    tx.dest = "AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby";
+    tx.amount = 50000;
+    tx.timestamp = get_timestamp();
+    tx.signature = ;
+    tx.id = 1;
+
+    std::array<Transaction, BLOCK_SIZE> txs;
+    txs[0] = tx;
+
+    Block genesis = {
+        {
+            .input = NULL,
+            .hash = NULL,
+            .prev_hash = NULL,
+            .difficulty = 1,
+            .timestamp = get_timestamp(),
+            .id = 1,
+        },
+        txs,
+    };
+    this->blocks.push_back(genesis);
 }
 
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {

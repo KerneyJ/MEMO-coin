@@ -22,7 +22,7 @@ make install
 git clone git@github.com:jbeder/yaml-cpp.git
 mkdir build
 cd build
-cmake
+cmake ..
 make install
 ```
 
