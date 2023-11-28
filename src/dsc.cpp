@@ -184,9 +184,6 @@ int run_metronome(std::vector<std::string> args) {
 }
 
 int run_blockchain(std::vector<std::string> args) {
-    Block genesis = get_genesis_block();
-    display_block(genesis);
-
     printf("Starting blockchain.\n");
     std::string address = get_blockchain_address();
     BlockChain blockchain = BlockChain();

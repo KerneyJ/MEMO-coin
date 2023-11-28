@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <yaml-cpp/node/node.h>
 #include <yaml-cpp/yaml.h>
 
 #include "wallet.hpp"
@@ -148,16 +149,24 @@ Block get_genesis_block() {
     genesis.header.timestamp  = config["header"]["timestamp"].as<uint64_t>();
     genesis.header.id         = config["header"]["id"].as<uint32_t>();
 
+    genesis.header.input.fingerprint.fill(0);
+    genesis.header.input.public_key.fill(0);
+    genesis.header.input.nonce = 0;
+
     // load transactions
 
-    // int idx = 0;
-    // for(auto node : config["transactions"]) {
-    //     auto tx = genesis.transactions[idx];
-    //     tx.src  = base58_decode_key(node["src"].as<std::string>());
-    //     tx.dest = base58_decode_key(node["dest"].as<std::string>());
-    //     tx.amount = node["amount"].as<uint32_t>();
-    //     idx++;
-    // }
+    for(auto iter : config["transactions"]) {
+        Transaction tx;
+        tx.src  = base58_decode_key(iter["src"].as<std::string>());
+        tx.dest = base58_decode_key(iter["dest"].as<std::string>());
+        tx.amount = iter["amount"].as<uint32_t>();
+
+        tx.signature.fill(0);
+        tx.timestamp = 0;
+        tx.id = 0;
+
+        genesis.transactions.push_back(tx);
+    }
 
     return genesis;
 }
