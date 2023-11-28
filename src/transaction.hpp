@@ -22,6 +22,8 @@ struct Transaction {
     uint64_t timestamp;
 };
 
+bool operator==(const Transaction& lhs, const Transaction& rhs);
+
 Transaction create_transaction(Wallet src, Ed25519Key dest, uint32_t amount, uint64_t id); 
 Transaction create_reward_transaction(Wallet miner);
 void sign_transaction(Ed25519Key priv_key, Transaction &tx);

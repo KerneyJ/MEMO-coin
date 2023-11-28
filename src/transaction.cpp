@@ -12,6 +12,10 @@
 #include "utils.hpp"
 #include "messages.hpp"
 
+bool operator==(const Transaction& lhs, const Transaction& rhs) {
+    return lhs.src == rhs.src && lhs.id == rhs.id;
+}
+
 void sign_transaction(Ed25519Key priv_key, Transaction &tx) {
     tx.signature.fill(0);
     tx.signature = sign_data_ed25519(priv_key, (uint8_t*) &tx, sizeof(Transaction));

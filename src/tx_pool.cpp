@@ -5,9 +5,11 @@
 #include <stdexcept>
 #include <system_error>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <zmq.h>
 
+#include "block.hpp"
 #include "defs.hpp"
 #include "messages.hpp"
 #include "transaction.hpp"
@@ -41,8 +43,8 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
     }
 
     printf("Signature valid, adding transaction...\n");
-    tx_queue.push_back(tx);
-    submitted_txs.insert({ {tx.src, tx.id}, tx});
+    submitted_queue.push_back(tx);
+    submitted_set.insert(tx);
 
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
@@ -54,31 +56,57 @@ void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
 
     // TODO: very inefficient, queue with bulk pop would perform better
     // Only take block size - 1 so there is room for the reward
-    for(int i = 0; i < BLOCK_SIZE - 1 && !tx_queue.empty(); i++) {
-        txs.push_back(tx_queue.front());
+    for(int i = 0; i < BLOCK_SIZE - 1 && !submitted_queue.empty(); i++) {
+        txs.push_back(submitted_queue.front());
 
         //remove from queue & submitted list
-        tx_queue.erase(tx_queue.begin());
-        submitted_txs.erase({txs[i].src, txs[i].id});
+        submitted_queue.pop_front();
+        submitted_set.erase(txs[i]);
 
         // insert into unconfirmed tx list
-        unconfirmed_txs.insert({ {txs[i].src, txs[i].id}, txs[i]});
+        unconfirmed_queue.push_back(txs[i]);
+        unconfirmed_set.insert(txs[i]);
     }
 
     auto bytes = serialize_message(txs, STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
-void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
-    auto tx_key = deserialize_payload<std::pair<Ed25519Key, uint64_t>>(data);
+void TxPool::confirm_transactions(void* receiver, MessageBuffer data) {
+    std::unique_lock<std::mutex> lock(tx_lock);
 
-    if(submitted_txs.find(tx_key) != submitted_txs.end()) {
+    auto block = deserialize_payload<Block>(data);
+    auto confirmed_set = TransactionSet(block.transactions.begin(), block.transactions.end());
+
+    while(!confirmed_set.empty() && !unconfirmed_queue.empty()) {
+        auto tx = unconfirmed_queue.front();
+        unconfirmed_queue.pop_front();
+        unconfirmed_set.erase(tx);
+        
+        // if element was not in confirmed set, add it to submitted queue
+        if(confirmed_set.erase(tx) == 0) {
+            submitted_queue.push_back(tx);
+            submitted_set.insert(tx);
+        }
+    }
+
+    auto bytes = serialize_message(STATUS_GOOD);
+    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+}
+
+void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
+    std::unique_lock<std::mutex> lock(tx_lock);
+
+    auto tx_key = deserialize_payload<std::pair<Ed25519Key, uint64_t>>(data);
+    Transaction tx = { .src = tx_key.first, .id = tx_key.second };
+
+    if(submitted_set.find(tx) != submitted_set.end()) {
         auto bytes = serialize_message(Transaction::SUBMITTED, STATUS_GOOD);
         zmq_send (receiver, bytes.data(), bytes.size(), 0);
         return;
     }
 
-    if(unconfirmed_txs.find(tx_key) != unconfirmed_txs.end()) {
+    if(unconfirmed_set.find(tx) != unconfirmed_set.end()) {
         auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
         zmq_send (receiver, bytes.data(), bytes.size(), 0);
         return;
