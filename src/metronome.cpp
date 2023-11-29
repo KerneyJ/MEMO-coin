@@ -14,6 +14,7 @@ Metronome::Metronome(std::string _blockchain) {
     blockchain = _blockchain;
     difficulty = MIN_DIFFICULTY;
     last_block = request_last_block();
+    active_validators = 0;
 }
 
 void Metronome::start(std::string address) {
@@ -25,7 +26,6 @@ void Metronome::start(std::string address) {
     std::cv_status status;
 
     while(true) {
-        this->active_validators = 0; //reset number of active_validators
         printf("Waiting for block %d.\n", last_block.id + 1);
 
         std::unique_lock<std::mutex> lock(block_mutex);
@@ -98,6 +98,7 @@ int Metronome::submit_block(Block block) {
     request_response(requester, block, SUBMIT_BLOCK, response);
 
     zmq_close(requester);
+    this->active_validators = 0; //reset number of active_validators
     return response.type == STATUS_GOOD ? 0 : -1;
 }
 
@@ -157,6 +158,7 @@ void Metronome::get_difficulty(void* receiver, MessageBuffer data) {
 //TODO: keep a list of active validator addresses. Validator should send its wallet public key.
 void Metronome::register_validator(void* receiver, MessageBuffer data) {
     this->active_validators += 1;
+    printf("get new validator: %d\n", this->active_validators);
     auto bytes = serialize_message(1, STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
     return;
