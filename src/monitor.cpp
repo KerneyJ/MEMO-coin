@@ -57,7 +57,7 @@ void num_validators() {
     //metronome keeps track of the number of validators. Query the metronome.
     void* context = zmq_ctx_new();
     void* requester = zmq_socket(context, ZMQ_REQ);
-    std::string metronome_address = get_metronome_address;
+    std::string metronome_address = get_metronome_address();
     zmq_connect(requester, metronome_address.c_str());
 
     Message<int> num_validators;
