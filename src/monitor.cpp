@@ -25,7 +25,7 @@ void num_trans() {
 
     void* context = zmq_ctx_new();
     void* requester = zmq_socket(context, ZMQ_REQ);
-    tx_pool = get_tx_pool_address();
+    std::string tx_pool = get_tx_pool_address();
     zmq_connect(requester, tx_pool.c_str());
 
     Message<uint32_t> response;
