@@ -7,6 +7,7 @@ Commands for getting info about the blockchain's state.
 #include "wallet.hpp"
 #include "keys.hpp"
 #include "messages.hpp"
+#include <zmq.h>
 
 
 //prints the contents of the last block of the blockchain.

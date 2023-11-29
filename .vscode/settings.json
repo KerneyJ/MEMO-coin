@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "deque": "cpp",
-        "cstddef": "cpp"
+        "cstddef": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp"
     }
 }
