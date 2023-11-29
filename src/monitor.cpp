@@ -21,8 +21,8 @@ void last_block() {
     zmq_connect(requester, blockchain_address.c_str());
 
     Message<Block> response;
-    Block b = response.data;
     request_response(requester, QUERY_LAST_BLOCK, response);
+    Block b = response.data;
     zmq_close(requester);
     zmq_ctx_destroy(context);
 
