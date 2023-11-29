@@ -128,7 +128,7 @@ void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
 
 //Count the number of transactions in the transaction pool.
 void TxPool::query_tx_count(void* receiver, Message<MessageBuffer> data) {
-    int tx_count = tx_queue.size();
+    int tx_count = submitted_queue.size() + unconfirmed_queue.size();
 
     //Send the data back to the monitor
 
