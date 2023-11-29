@@ -20,7 +20,7 @@ void last_block() {
     std::string blockchain_address = get_blockchain_address();
     zmq_connect(requester, blockchain_address.c_str());
 
-    Message<uint32_t> response;
+    Message<Block> response;
     Block b = response.data;
     request_response(requester, QUERY_LAST_BLOCK, response);
     zmq_close(requester);
