@@ -60,9 +60,9 @@ void num_validators() {
     std::string metronome_address = get_metronome_address();
     zmq_connect(requester, metronome_address.c_str());
 
-    Message<int> num_validators;
-    int num_validators = response.data;
+    Message<int> response;
     request_response(requester, QUERY_NUM_VALIDATORS, response);
+    int num_validators = response.data;
     zmq_close(requester);
     zmq_ctx_destroy(context);
     printf("\number of validators attempting to mine current block: %d\n", num_validators);
