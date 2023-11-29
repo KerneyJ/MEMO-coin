@@ -171,7 +171,7 @@ void Metronome::request_handler(void* receiver, Message<MessageBuffer> request) 
         case REGISTER_VALIDATOR:
             return register_validator(receiver, request.data);
         case QUERY_NUM_VALIDATORS:
-            return register_validator(receiver, data);
+            return register_validator(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
