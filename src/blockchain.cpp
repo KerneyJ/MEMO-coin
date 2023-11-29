@@ -114,7 +114,7 @@ void BlockChain::get_total_coins(void* receiver, MessageBuffer data) {
 
     // Sum variable to accumulate the values
     uint32_t sum = 0;
-
+    print("HELLOOOOO");
     // Iterate over the unordered_map
     for (const auto& entry : this->ledger) {
         // entry.first is the key (Ed25519Key)
