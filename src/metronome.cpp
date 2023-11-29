@@ -154,6 +154,7 @@ void Metronome::get_difficulty(void* receiver, MessageBuffer data) {
 
 //increments the number of active_validators every time a new validator attempts to mine the block. 
 //active_validators is reset at each block so the accumulates over the duration of a block (e.g. 6 seconds).
+//TODO: keep a list of active validator addresses. Validator should send its wallet public key.
 void Metronome::register_validator(void* receiver, MessageBuffer data) {
     this->active_validators += 1;
     auto bytes = serialize_message(1, STATUS_GOOD);
@@ -169,6 +170,8 @@ void Metronome::request_handler(void* receiver, Message<MessageBuffer> request) 
             return get_difficulty(receiver, request.data);
         case REGISTER_VALIDATOR:
             return register_validator(receiver, request.data);
+        case QUERY_NUM_VALIDATORS:
+            return register_validator(receiver, data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
