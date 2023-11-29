@@ -59,7 +59,6 @@ void num_validators() {
     printf("\n");
     return;
 }
-
 //prints the number of wallet addresses
 void num_wallets() {
     void* context = zmq_ctx_new();
