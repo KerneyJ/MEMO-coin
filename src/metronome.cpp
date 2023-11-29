@@ -142,7 +142,7 @@ void Metronome::handle_block(void* receiver, MessageBuffer data) {
     curr_solved_time = block.header.timestamp;
     last_block = block.header;
     block_timer.notify_one();
-
+    this->active_validators = 0; //reset number of active_validators
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
