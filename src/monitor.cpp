@@ -51,11 +51,21 @@ void num_trans() {
     printf("\n");
     return;
 }
-//prints the number of validators in the network.
+//prints the number of validators in the network. Number is reset at beginning of each block.
+//Validator registers with metronome when it attempts to mine the block.
 void num_validators() {
     //metronome keeps track of the number of validators. Query the metronome.
-    printf("num_validators not implemented");
-    printf("\n");
+    void* context = zmq_ctx_new();
+    void* requester = zmq_socket(context, ZMQ_REQ);
+    std::string metronome_address = get_metronome_address;
+    zmq_connect(requester, metronome_address.c_str());
+
+    Message<int> num_validators;
+    int num_validators = response.data;
+    request_response(requester, QUERY_NUM_VALIDATORS, response);
+    zmq_close(requester);
+    zmq_ctx_destroy(context);
+    printf("\number of validators attempting to mine current block: %d\n", num_validators);
     return;
 }
 //prints the number of wallet addresses
