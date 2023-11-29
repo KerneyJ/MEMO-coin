@@ -83,7 +83,7 @@ void num_coins() {
     zmq_connect(requester, blockchain_address.c_str());
 
     Message<int> response;
-    request_response(requester, QUERY_NUM_ADDRS, response);
+    request_response(requester, QUERY_COINS, response);
     int coin_count = response.data;
     printf("Net total number of coins in blockchain: %d coins.\n", coin_count);
     zmq_close(requester);
