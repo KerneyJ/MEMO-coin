@@ -65,7 +65,7 @@ void hashes_stored() {
 }
 
 //Run all the monitor stats
-void run_monitor() {
+void print_monitor_stats() {
     last_block();
     num_trans();
     num_validators();

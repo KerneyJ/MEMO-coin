@@ -196,7 +196,7 @@ int run_blockchain(std::vector<std::string> args) {
 //Prints out all the monitor stats when called. Could be modified to print stats at regular intervals in a loop.
 int run_monitor(std::vector<std::string> args) {
     printf("Starting monitor\n");
-    run_monitor();
+    print_monitor_stats();
     printf("Monitor stats complete.");
     return 0;
 }
