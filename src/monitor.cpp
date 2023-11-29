@@ -11,12 +11,13 @@ Commands for getting info about the blockchain's state.
 
 //prints the contents of the last block of the blockchain.
 void last_block() {
-
+    printf("last_block not implemented");
+    return;
 }
 
 
 //prints info about the unconfirmed transactions in the transaction pools.
-void unconf_trans() {
+void num_trans() {
     //makes a COUNT_UNCONFIRMED_TX request to the tx_pool.
     //in tx_pool.cpp, the tx pool counts the returns the number of transactions in the queue and replies with that number.
 
@@ -35,28 +36,42 @@ void unconf_trans() {
 //prints the number of validators in the network.
 void num_validators() {
     //metronome keeps track of the number of validators. Query the metronome.
+    printf("num_validators not implemented");
+    return;
 }
-    
-//prints the last block header
-void last_block() {
 
-}
 //prints the number of wallet addresses
 void num_wallets() {
-
+    printf("num_wallets  not implemented");
+    return;
 }
 
 //prints the total number of coins in circulation
 void num_coins() {
-
+    printf("num_coins  not implemented");
+    return;
 }
 
 // prints the number of hashes per second
 void hashes_per_second() {
-
+    printf("hashes_per_second not implemented");
+    return;
 }
 
 //prints the total number of hashes stored
 void hashes_stored() {
+    printf("hashes_stored not implemented");
+    return;
+}
 
+//Run all the monitor stats
+void run_monitor() {
+    last_block();
+    num_trans();
+    num_validators();
+    num_wallets();
+    num_coins();
+    hashes_per_second();
+    hashes_stored();
+    return;
 }
