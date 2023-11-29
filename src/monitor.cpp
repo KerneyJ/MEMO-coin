@@ -8,6 +8,7 @@ Commands for getting info about the blockchain's state.
 #include "keys.hpp"
 #include "messages.hpp"
 #include <zmq.h>
+#include "config.hpp"
 
 
 //prints the contents of the last block of the blockchain.
@@ -24,6 +25,7 @@ void num_trans() {
 
     void* context = zmq_ctx_new();
     void* requester = zmq_socket(context, ZMQ_REQ);
+    tx_pool = get_tx_pool_address();
     zmq_connect(requester, tx_pool.c_str());
 
     Message<uint32_t> response;
