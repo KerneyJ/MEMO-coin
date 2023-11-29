@@ -40,7 +40,7 @@ class TxPool {
         void query_tx_status(void* receiver, MessageBuffer request);
         void confirm_block(void* receiver, MessageBuffer request);
         void request_handler(void* receiver, Message<MessageBuffer> request);
-        void query_tx_count(void* receiver, Message<MessageBuffer> data);
+        void query_tx_count(void* receiver, MessageBuffer data);
     public:
         TxPool(std::string blockchain);
         void start(std::string address);
