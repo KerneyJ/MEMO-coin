@@ -103,7 +103,7 @@ void BlockChain::load_genesis(){
 //Replies to sender with the number of unique addresses on the blockchain,
 //which is equal to the number of entries in blockchain.ledger.
 void BlockChain::get_num_addr(void* receiver, MessageBuffer data) {
-    int num_addresses = this.ledger.size();
+    int num_addresses = this->ledger.size();
     auto bytes = serialize_message(num_addresses, STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
     return;
