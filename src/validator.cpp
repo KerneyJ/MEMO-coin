@@ -43,7 +43,7 @@ Validator::~Validator() {
 void register_with_metronome(Wallet wallet) {
     void* context = zmq_ctx_new();
     void* requester = zmq_socket(context, ZMQ_REQ);
-    std::string metronome_address = get_metronome_address;
+    std::string metronome_address = get_metronome_address();
     zmq_connect(requester, metronome_address.c_str());
 
     Message<int> response;
@@ -55,7 +55,7 @@ void register_with_metronome(Wallet wallet) {
 }
 void Validator::start(std::string address) {
     BlockHeader last_block;
-    
+
     while(true) {
         // Get next consensus problem
         auto curr_block = request_block_header(last_block);
