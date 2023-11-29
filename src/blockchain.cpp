@@ -120,6 +120,7 @@ void BlockChain::get_total_coins(void* receiver, MessageBuffer data) {
         // entry.first is the key (Ed25519Key)
         // entry.second is the value (uint32_t)
         sum += entry.second;
+        printf("!!!%d", entry.second);
     }
 
     // Now 'sum' contains the sum of all uint32_t values in the unordered_map
