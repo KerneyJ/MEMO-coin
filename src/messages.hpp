@@ -21,7 +21,7 @@ enum MessageType {
     SUBMIT_BLOCK,
     QUERY_DIFFICULTY,
     QUERY_LAST_BLOCK,
-    CONFIRM_BLOCK,
+    QUERY_TX_COUNT
 };
 
 template<typename Type>
