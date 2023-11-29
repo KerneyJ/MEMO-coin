@@ -24,19 +24,22 @@ void BlockChain::start(std::string address) {
 void BlockChain::sync_bal(Block b){
     for(size_t nt = 0; nt < b.transactions.size(); nt++){
         Transaction t = b.transactions[nt];
+        display_transaction(t);
         auto srcbal = this->ledger.find(t.src);
         auto dstbal = this->ledger.find(t.dest);
-        if(srcbal != this->ledger.end()){
-            this->ledger[t.src] = srcbal->second - t.amount;
-        }
-        else {// this should never happend
-            this->ledger.emplace(t.src, -t.amount);
-        }
         if(dstbal != this->ledger.end()){
             this->ledger[t.dest] = dstbal->second + t.amount;
         }
         else{
             this->ledger.emplace(t.dest, t.amount);
+        }
+        if(base58_encode_key(t.src) == std::string("11111111111111111111111111111111"))
+            continue;
+        if(srcbal != this->ledger.end()){
+            this->ledger[t.src] = srcbal->second - t.amount;
+        }
+        else {// this should never happend
+            this->ledger.emplace(t.src, -t.amount);
         }
     }
 }
