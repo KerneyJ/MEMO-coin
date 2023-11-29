@@ -10,12 +10,23 @@ Commands for getting info about the blockchain's state.
 #include <zmq.h>
 #include "config.hpp"
 #include "utils.hpp"
+#include "block.hpp"
 
 
-//prints the contents of the last block of the blockchain.
+//prints the header of the last block of the blockchain.
 void last_block() {
-    printf("last_block not implemented");
-    printf("/n");
+    void* context = zmq_ctx_new();
+    void* requester = zmq_socket(context, ZMQ_REQ);
+    std::string blockchain_address = get_blockchain_address();
+    zmq_connect(requester, blockchain_address.c_str());
+
+    Message<uint32_t> response;
+    Block b = response.data;
+    request_response(requester, QUERY_LAST_BLOCK, response);
+    zmq_close(requester);
+    zmq_ctx_destroy(context);
+
+    printf("%s /n", b.header);
     return;
 }
 
