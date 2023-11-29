@@ -66,7 +66,7 @@ void num_wallets() {
     std::string blockchain_address = get_blockchain_address();
     zmq_connect(requester, blockchain_address.c_str());
 
-    Message<Block> response;
+    Message<int> response;
     request_response(requester, QUERY_NUM_ADDRS, response);
     int num_addresses = response.data;
     printf("Number of wallets on blockchain: %d", num_addresses);
