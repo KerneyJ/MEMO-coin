@@ -110,7 +110,7 @@ void BlockChain::get_num_addr(void* receiver, MessageBuffer data) {
     return;
 }
 
-void get_total_coins(void* receiver, MessageBuffer data) {
+void BlockChain::get_total_coins(void* receiver, MessageBuffer data) {
 
     // Sum variable to accumulate the values
     uint32_t sum = 0;
