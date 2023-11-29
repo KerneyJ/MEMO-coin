@@ -89,6 +89,7 @@ void hashes_stored() {
 
 //Run all the monitor stats
 void print_monitor_stats() {
+    printf("\ttimestamp: %lu\n", get_timestamp());
     last_block();
     num_trans();
     num_validators();
