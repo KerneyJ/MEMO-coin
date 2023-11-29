@@ -23,7 +23,7 @@ void num_trans() {
     //in tx_pool.cpp, the tx pool counts the returns the number of transactions in the queue and replies with that number.
 
     void* context = zmq_ctx_new();
-    void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
+    void* requester = zmq_socket(context, ZMQ_REQ);
     zmq_connect(requester, tx_pool.c_str());
 
     Message<uint32_t> response;
