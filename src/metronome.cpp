@@ -25,7 +25,7 @@ void Metronome::start(std::string address) {
     std::cv_status status;
 
     while(true) {
-        this->active_validators = 0; //reset number of active_validators
+        
         printf("Waiting for block %d.\n", last_block.id + 1);
 
         std::unique_lock<std::mutex> lock(block_mutex);
@@ -141,7 +141,7 @@ void Metronome::handle_block(void* receiver, MessageBuffer data) {
     curr_solved_time = block.header.timestamp;
     last_block = block.header;
     block_timer.notify_one();
-
+    this->active_validators = 0; //reset number of active_validators
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
