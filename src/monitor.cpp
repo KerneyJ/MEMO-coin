@@ -26,7 +26,8 @@ void last_block() {
     zmq_close(requester);
     zmq_ctx_destroy(context);
 
-    printf("%s /n", b.header);
+    display_block(b.header);
+    printf("\n");
     return;
 }
 
@@ -47,42 +48,42 @@ void num_trans() {
     zmq_close(requester);
     zmq_ctx_destroy(context);
     printf("size of transation queue: %d transactions in queue", response.data);
-    printf("/n");
+    printf("\n");
     return;
 }
 //prints the number of validators in the network.
 void num_validators() {
     //metronome keeps track of the number of validators. Query the metronome.
     printf("num_validators not implemented");
-    printf("/n");
+    printf("\n");
     return;
 }
 
 //prints the number of wallet addresses
 void num_wallets() {
     printf("num_wallets  not implemented");
-    printf("/n");
+    printf("\n");
     return;
 }
 
 //prints the total number of coins in circulation
 void num_coins() {
     printf("num_coins  not implemented");
-    printf("/n");
+    printf("\n");
     return;
 }
 
 // prints the number of hashes per second
 void hashes_per_second() {
     printf("hashes_per_second not implemented");
-    printf("/n");
+    printf("\n");
     return;
 }
 
 //prints the total number of hashes stored
 void hashes_stored() {
     printf("hashes_stored not implemented");
-    printf("/n");
+    printf("\n");
     return;
 }
 
