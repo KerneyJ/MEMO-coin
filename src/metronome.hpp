@@ -35,6 +35,7 @@ class Metronome {
         void handle_block(void* receiver, MessageBuffer data);
         void get_difficulty(void* receiver, MessageBuffer data);
         void request_handler(void* receiver, Message<MessageBuffer> request);
+        void register_validator(void* receiver, MessageBuffer data);
     public:
         Metronome(std::string);
         void start(std::string address);
