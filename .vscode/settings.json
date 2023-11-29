@@ -5,6 +5,7 @@
         "unordered_set": "cpp",
         "vector": "cpp",
         "unordered_map": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "random": "cpp"
     }
 }

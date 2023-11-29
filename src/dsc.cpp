@@ -197,7 +197,6 @@ int run_blockchain(std::vector<std::string> args) {
 int run_monitor(std::vector<std::string> args) {
     printf("Starting monitor\n");
     print_monitor_stats();
-    printf("Monitor stats complete.");
     return 0;
 }
 

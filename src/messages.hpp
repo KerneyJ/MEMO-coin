@@ -22,7 +22,8 @@ enum MessageType {
     QUERY_DIFFICULTY,
     QUERY_LAST_BLOCK,
     CONFIRM_BLOCK,
-    QUERY_TX_COUNT
+    QUERY_TX_COUNT,
+    QUERY_NUM_ADDRS
 };
 
 template<typename Type>

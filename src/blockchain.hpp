@@ -17,6 +17,7 @@ class BlockChain {
         void get_balance(void* receiver, MessageBuffer data);
         void last_block(void* receiver, MessageBuffer data);
         void tx_status(void *receiver, MessageBuffer data);
+        void get_num_addr(void* receiver, MessageBuffer data);
         void request_handler(void* receiver, Message<MessageBuffer> request);
         void load_genesis();
     public:

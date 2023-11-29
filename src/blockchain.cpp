@@ -100,6 +100,15 @@ void BlockChain::load_genesis(){
     printf("Genesis block loaded\n");
 }
 
+//Replies to sender with the number of unique addresses on the blockchain,
+//which is equal to the number of entries in blockchain.ledger.
+void get_num_addr(void* receiver, MessageBuffer data) {
+    num_addresses = this.ledger.size();
+    auto bytes = serialize_message(b, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case QUERY_BAL:
@@ -109,7 +118,9 @@ void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request)
         case QUERY_LAST_BLOCK:
             return last_block(receiver, request.data);
         case QUERY_TX_STATUS:
-             return tx_status(receiver, request.data);
+            return tx_status(receiver, request.data);
+        case QUERY_NUM_ADDRS:
+            return get_num_addr(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
