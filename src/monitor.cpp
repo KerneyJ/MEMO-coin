@@ -33,7 +33,6 @@ void last_block() {
 
 
 //prints info about the unconfirmed transactions in the transaction pools.
-//TODO: should show separate values for the number of unconfirmed tx's and submitted tx's.
 void num_trans() {
     //makes a COUNT_UNCONFIRMED_TX request to the tx_pool.
     //in tx_pool.cpp, the tx pool counts the returns the number of transactions in the queue and replies with that number.

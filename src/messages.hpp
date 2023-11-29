@@ -24,7 +24,8 @@ enum MessageType {
     CONFIRM_BLOCK,
     QUERY_TX_COUNT,
     QUERY_NUM_ADDRS,
-    QUERY_COINS
+    QUERY_COINS,
+    REGISTER_VALIDATOR
 };
 
 template<typename Type>

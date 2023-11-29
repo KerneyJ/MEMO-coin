@@ -27,6 +27,7 @@ class Metronome {
         BlockHeader last_block;
         std::string blockchain;
         Server server;
+        int active_validators;
         void update_difficulty(bool timed_out);
         void submit_empty_block();
         int submit_block(Block block);

@@ -25,6 +25,7 @@ void Metronome::start(std::string address) {
     std::cv_status status;
 
     while(true) {
+        this->active_validators = 0; //reset number of active_validators
         printf("Waiting for block %d.\n", last_block.id + 1);
 
         std::unique_lock<std::mutex> lock(block_mutex);
@@ -151,12 +152,23 @@ void Metronome::get_difficulty(void* receiver, MessageBuffer data) {
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
+//increments the number of active_validators every time a new validator attempts to mine the block. 
+//active_validators is reset at each block so the accumulates over the duration of a block (e.g. 6 seconds).
+void Metronome::register_validator(void* receiver, MessageBuffer data) {
+    this->active_validators += 1;
+    auto bytes = serialize_message(1, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
 void Metronome::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case SUBMIT_BLOCK:
             return handle_block(receiver, request.data);
         case QUERY_DIFFICULTY:
             return get_difficulty(receiver, request.data);
+        case REGISTER_VALIDATOR:
+            return register_validator(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
