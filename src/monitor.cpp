@@ -26,7 +26,7 @@ void last_block() {
     zmq_close(requester);
     zmq_ctx_destroy(context);
 
-    display_block(b.header);
+    display_block(b);
     printf("\n");
     return;
 }
