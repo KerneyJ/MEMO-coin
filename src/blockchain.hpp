@@ -19,6 +19,7 @@ class BlockChain {
         void tx_status(void *receiver, MessageBuffer data);
         void get_num_addr(void* receiver, MessageBuffer data);
         void request_handler(void* receiver, Message<MessageBuffer> request);
+        void get_total_coins(void* receiver, MessageBuffer data);
         void load_genesis();
     public:
         BlockChain(std::string txpaddr);

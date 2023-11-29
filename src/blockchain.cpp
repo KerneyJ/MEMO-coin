@@ -110,6 +110,25 @@ void BlockChain::get_num_addr(void* receiver, MessageBuffer data) {
     return;
 }
 
+void get_total_coins(void* receiver, MessageBuffer data) {
+
+    // Sum variable to accumulate the values
+    uint32_t sum = 0;
+
+    // Iterate over the unordered_map
+    for (const auto& entry : this->ledger) {
+        // entry.first is the key (Ed25519Key)
+        // entry.second is the value (uint32_t)
+        sum += entry.second;
+    }
+
+    // Now 'sum' contains the sum of all uint32_t values in the unordered_map
+    int total_coins = sum;
+    auto bytes = serialize_message(total_coins, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case QUERY_BAL:
@@ -122,6 +141,8 @@ void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request)
             return tx_status(receiver, request.data);
         case QUERY_NUM_ADDRS:
             return get_num_addr(receiver, request.data);
+        case QUERY_COINS:
+            return get_total_coins(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

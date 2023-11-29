@@ -77,8 +77,17 @@ void num_wallets() {
 
 //prints the total number of coins in circulation
 void num_coins() {
-    printf("num_coins  not implemented");
-    printf("\n");
+    void* context = zmq_ctx_new();
+    void* requester = zmq_socket(context, ZMQ_REQ);
+    std::string blockchain_address = get_blockchain_address();
+    zmq_connect(requester, blockchain_address.c_str());
+
+    Message<int> response;
+    request_response(requester, QUERY_NUM_ADDRS, response);
+    int coin_count = response.data;
+    printf("Net total number of coins in blockchain: %d coins.", coin_count);
+    zmq_close(requester);
+    zmq_ctx_destroy(context);
     return;
 }
 
