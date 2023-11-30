@@ -36,6 +36,26 @@ static bool check_prefix(Blake3Hash result, Blake3Hash target, uint32_t difficul
     return correct >= difficulty;
 }
 
+static int prefix_binary_search(std::vector<Blake3Hash> hashes, Blake3Hash target, int difficulty)
+{
+    int l = 0, r = hashes.size() - 1;
+    while (l <= r) {
+        int m = l + (r - l) / 2;
+
+        if (check_prefix(hashes[m], target, difficulty))
+            return m;
+
+        if (hashes[m] < target)
+            l = m + 1;
+
+        else
+            r = m - 1;
+    }
+
+    return -1;
+}
+
+
 ProofOfMemory::ProofOfMemory(Wallet wallet, UUID fingerprint){
     this->fingerprint = fingerprint;
     this->wallet = wallet;
@@ -69,9 +89,9 @@ void ProofOfMemory::gen_hashes(uint32_t memory){
     printf("\n");
 
     // TODO: sort & binary search
-    // printf("Sorting %lu hashes...\n", hashes.size());
-    // std::sort(hashes.begin(), hashes.end());
-    // printf("Finished sorting!\n");
+    printf("Sorting %lu hashes...\n", hashes.size());
+    std::sort(hashes.begin(), hashes.end());
+    printf("Finished sorting!\n");
 }
 
 std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash, uint32_t difficulty, uint64_t) {
@@ -87,21 +107,20 @@ std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash,
     blake3_hasher_update(&hasher, prev_hash.data(), prev_hash.size());
     blake3_hasher_finalize(&hasher, target.data(), target.size());
 
-    for(int i = 0; i < hashes.size(); i++){
-        if(check_prefix(hashes[i], target, difficulty)){
-            printf("Found solution at index %d.\n", i);
-            input.nonce = i;
-            return { input, hashes[i] };
-        }
+    int idx = prefix_binary_search(hashes, target, difficulty);
+    
+    if(idx == -1) {
+        printf("No solution found in %lu hashes.\n", hashes.size());
+
+        input.fingerprint.fill(0);
+        input.public_key.fill(0);
+        input.nonce = 0;
+        target.fill(0);
+        return { input, target };
     }
 
-    printf("No solution found in %lu hashes.\n", hashes.size());
-
-    input.fingerprint.fill(0);
-    input.public_key.fill(0);
-    input.nonce = 0;
-    target.fill(0);
-    return { input, target };
+    input.nonce = 69;
+    return { input, hashes[idx] };
 }
 
 bool ProofOfMemory::verify_solution(HashInput input, Blake3Hash curr_hash, Blake3Hash prev_hash, uint32_t difficulty) {
@@ -120,3 +139,41 @@ bool ProofOfMemory::verify_solution(HashInput input, Blake3Hash curr_hash, Blake
 
     return check_prefix(result, target, difficulty);
 }
+
+// int main(void) {
+//     UUID fingerprint;
+//     uint32_t memory;
+//     ProofOfMemory* pom;
+//     Wallet wallet;
+//     blake3_hasher hasher;
+
+//     uuid_generate(fingerprint.data());
+//     set_validator_fingerprint(fingerprint);
+//     memory = 10000 * 32;
+
+//     pom = new ProofOfMemory(wallet, fingerprint);
+//     pom->gen_hashes(memory);
+
+//     Blake3Hash prev_hash, target;
+
+//     for(int i = 0; i < 100; i++) {
+
+//         prev_hash.fill(i);
+
+//         auto solution = pom->solve_hash(prev_hash, 16);
+
+//         blake3_hasher_init(&hasher);
+//         blake3_hasher_update(&hasher, prev_hash.data(), prev_hash.size());
+//         blake3_hasher_finalize(&hasher, target.data(), target.size());
+
+//         printf("\ttarget: ");
+//         for(auto byte : target)
+//             printf("%02x", byte);
+//         printf("\n");
+
+//         printf("\tsolution: ");
+//         for(auto byte : solution.second)
+//             printf("%02x", byte);
+//         printf("\n");
+//     }
+// }
