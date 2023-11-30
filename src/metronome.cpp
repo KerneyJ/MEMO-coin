@@ -27,6 +27,7 @@ void Metronome::start(std::string address) {
     while(true) {
         printf("Waiting for block %d.\n", last_block.id + 1);
 
+        // TODO: handle spurious wakeups
         std::unique_lock<std::mutex> lock(block_mutex);
         status = block_timer.wait_for(lock, std::chrono::seconds(BLOCK_TIME));
 
