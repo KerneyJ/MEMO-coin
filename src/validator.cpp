@@ -19,6 +19,7 @@
 #include "validator.hpp"
 #include "wallet.hpp"
 #include "utils.hpp"
+#include "config.hpp"
 
 Validator::Validator(std::string _blockchain, std::string _metronome, 
     std::string _tx_pool, IConsensusModel* _consensus, Wallet _wallet) 
@@ -37,6 +38,21 @@ Validator::~Validator() {
     delete consensus;
 }
 
+//So that the metronome can track the number of active validators in the network. Reported by monitor.
+//Registers at each block so that the statistic is current with the current block.
+void register_with_metronome(Wallet wallet) {
+    void* context = zmq_ctx_new();
+    void* requester = zmq_socket(context, ZMQ_REQ);
+    std::string metronome_address = get_metronome_address();
+    zmq_connect(requester, metronome_address.c_str());
+
+    Message<int> response;
+    int num_addresses = response.data;
+    request_response(requester, REGISTER_VALIDATOR, response);
+    zmq_close(requester);
+    zmq_ctx_destroy(context);
+    return;
+}
 void Validator::start(std::string address) {
     BlockHeader last_block;
 
@@ -44,7 +60,7 @@ void Validator::start(std::string address) {
         // Get next consensus problem
         auto curr_block = request_block_header(last_block);
         auto difficulty = request_difficulty();
-
+        register_with_metronome(this->wallet);
         auto solution = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME * 1000000);
         
         uint64_t* bytes = (uint64_t*) solution.second.data();

@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "deque": "cpp",
+        "cstddef": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "unordered_map": "cpp",
+        "string": "cpp",
+        "random": "cpp",
+        "chrono": "cpp",
+        "array": "cpp",
+        "ratio": "cpp",
+        "stdexcept": "cpp",
+        "thread": "cpp",
+        "functional": "cpp",
+        "ctime": "cpp"
+    }
+}

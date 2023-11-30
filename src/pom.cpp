@@ -20,7 +20,7 @@
 static bool check_prefix(Blake3Hash result, Blake3Hash target, uint32_t difficulty) {
     int i, j, correct = 0;
 
-    if(difficulty > result.size())
+    if(difficulty > result.size() * 8)
         throw std::runtime_error("Bad difficulty.");
 
     for(i = 0; i < result.size(); i++) {

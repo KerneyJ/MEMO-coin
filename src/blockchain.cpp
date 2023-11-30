@@ -24,19 +24,22 @@ void BlockChain::start(std::string address) {
 void BlockChain::sync_bal(Block b){
     for(size_t nt = 0; nt < b.transactions.size(); nt++){
         Transaction t = b.transactions[nt];
+        display_transaction(t);
         auto srcbal = this->ledger.find(t.src);
         auto dstbal = this->ledger.find(t.dest);
-        if(srcbal != this->ledger.end()){
-            this->ledger[t.src] = srcbal->second - t.amount;
-        }
-        else {// this should never happend
-            this->ledger.emplace(t.src, -t.amount);
-        }
         if(dstbal != this->ledger.end()){
             this->ledger[t.dest] = dstbal->second + t.amount;
         }
         else{
             this->ledger.emplace(t.dest, t.amount);
+        }
+        if(base58_encode_key(t.src) == std::string("11111111111111111111111111111111"))
+            continue;
+        if(srcbal != this->ledger.end()){
+            this->ledger[t.src] = srcbal->second - t.amount;
+        }
+        else {// this should never happend
+            this->ledger.emplace(t.src, -t.amount);
         }
     }
 }
@@ -52,7 +55,7 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
     printf("Block added, %lu blocks\n", this->blocks.size());
 
-    void* context = zmq_ctx_new();
+    void* context = server.get_context();
     void* requester = zmq_socket(context, ZMQ_REQ);
 
     zmq_connect(requester, txpool_address.c_str());
@@ -60,7 +63,6 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
     request_response(requester, block, CONFIRM_BLOCK, response);
 
     zmq_close(requester);
-    zmq_ctx_destroy(context);
 }
 
 void BlockChain::get_balance(void* receiver, MessageBuffer data) {
@@ -101,6 +103,37 @@ void BlockChain::load_genesis(){
     printf("Genesis block loaded\n");
 }
 
+//Replies to sender with the number of unique addresses on the blockchain,
+//which is equal to the number of entries in blockchain.ledger.
+void BlockChain::get_num_addr(void* receiver, MessageBuffer data) {
+    printf("getting number of blockchain addresses in blockchain.cpp");
+    int num_addresses = this->ledger.size();
+    auto bytes = serialize_message(num_addresses, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
+void BlockChain::get_total_coins(void* receiver, MessageBuffer data) {
+
+    // Sum variable to accumulate the values
+    uint32_t sum = 0;
+    // Iterate over the unordered_map
+    printf("\n");
+    for (const auto& entry : this->ledger) {
+        // entry.first is the key (Ed25519Key)
+        // entry.second is the value (uint32_t)
+        sum += entry.second;
+        printf("entry: %d, ", entry.second);
+    }
+    printf("\nSUM = %d\n", sum);
+    fflush(stdout);
+    // Now 'sum' contains the sum of all uint32_t values in the unordered_map
+    int total_coins = sum;
+    auto bytes = serialize_message(total_coins, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
 void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case QUERY_BAL:
@@ -110,7 +143,11 @@ void BlockChain::request_handler(void* receiver, Message<MessageBuffer> request)
         case QUERY_LAST_BLOCK:
             return last_block(receiver, request.data);
         case QUERY_TX_STATUS:
-             return tx_status(receiver, request.data);
+            return tx_status(receiver, request.data);
+        case QUERY_NUM_ADDRS:
+            return get_num_addr(receiver, request.data);
+        case QUERY_COINS:
+            return get_total_coins(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

@@ -14,6 +14,7 @@ Metronome::Metronome(std::string _blockchain) {
     blockchain = _blockchain;
     difficulty = MIN_DIFFICULTY;
     last_block = request_last_block();
+    active_validators = 0;
 }
 
 void Metronome::start(std::string address) {
@@ -98,6 +99,7 @@ int Metronome::submit_block(Block block) {
     request_response(requester, block, SUBMIT_BLOCK, response);
 
     zmq_close(requester);
+    this->active_validators = 0; //reset number of active_validators
     return response.type == STATUS_GOOD ? 0 : -1;
 }
 
@@ -141,7 +143,7 @@ void Metronome::handle_block(void* receiver, MessageBuffer data) {
     curr_solved_time = block.header.timestamp;
     last_block = block.header;
     block_timer.notify_one();
-
+    this->active_validators = 0; //reset number of active_validators
     auto bytes = serialize_message(STATUS_GOOD);
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
@@ -152,12 +154,27 @@ void Metronome::get_difficulty(void* receiver, MessageBuffer data) {
     zmq_send (receiver, bytes.data(), bytes.size(), 0);
 }
 
+//increments the number of active_validators every time a new validator attempts to mine the block. 
+//active_validators is reset at each block so the accumulates over the duration of a block (e.g. 6 seconds).
+//TODO: keep a list of active validator addresses. Validator should send its wallet public key.
+void Metronome::register_validator(void* receiver, MessageBuffer data) {
+    this->active_validators += 1;
+    printf("get new validator: %d\n", this->active_validators);
+    auto bytes = serialize_message(1, STATUS_GOOD);
+    zmq_send(receiver, bytes.data(), bytes.size(), 0);
+    return;
+}
+
 void Metronome::request_handler(void* receiver, Message<MessageBuffer> request) {
     switch (request.type) {
         case SUBMIT_BLOCK:
             return handle_block(receiver, request.data);
         case QUERY_DIFFICULTY:
             return get_difficulty(receiver, request.data);
+        case REGISTER_VALIDATOR:
+            return register_validator(receiver, request.data);
+        case QUERY_NUM_VALIDATORS:
+            return register_validator(receiver, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

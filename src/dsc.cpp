@@ -21,6 +21,7 @@ extern "C" {
 #include "consensus.hpp"
 #include "pom.hpp"
 #include "pow.hpp"
+#include "monitor.hpp"
 
 int cl_wallet_help() {
     printf("Help menu for Wallet, supported commands:\n");
@@ -192,6 +193,13 @@ int run_blockchain(std::vector<std::string> args) {
     return 0;
 }
 
+//Prints out all the monitor stats when called. Could be modified to print stats at regular intervals in a loop.
+int run_monitor(std::vector<std::string> args) {
+    printf("Starting monitor\n");
+    print_monitor_stats();
+    return 0;
+}
+
 int main(int argc, char** argv) {
     printf("DSC: DataSys Coin Blockchain v1.0\n");
 
@@ -221,6 +229,8 @@ int main(int argc, char** argv) {
     if(command == "blockchain")
         return run_blockchain(args);
 
+    if(command == "monitor")
+        return run_monitor(args);
     printf("Could not find component to run.\n");
     return -1;
 }
