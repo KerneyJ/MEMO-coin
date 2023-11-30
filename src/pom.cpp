@@ -15,6 +15,7 @@
 #include "defs.hpp"
 #include "wallet.hpp"
 #include "config.hpp"
+#include "utils.hpp"
 #include "pom.hpp"
 
 static bool check_prefix(Blake3Hash result, Blake3Hash target, uint32_t difficulty) {
@@ -45,18 +46,17 @@ void ProofOfMemory::gen_hashes(uint32_t memory){
     HashInput input;
     Blake3Hash result;
     blake3_hasher hasher;
-    
+
     input.fingerprint = fingerprint;
     input.public_key = wallet.pub_key;
     input.nonce = 0;
 
     int num_hashes = memory / sizeof(Blake3Hash);
     hashes.resize(num_hashes);
-
+    uint64_t start = get_timestamp();
     for(int i = 0; i < hashes.size() ; i++) {
-        if(i % 123)
-            printf("Generating %d/%lu hashes...\r", i+1, hashes.size());
-
+        /*if(i % 123)
+            printf("Generating %d/%lu hashes...\r", i+1, hashes.size());*/
         input.nonce = i;
 
         blake3_hasher_init(&hasher);
@@ -65,7 +65,7 @@ void ProofOfMemory::gen_hashes(uint32_t memory){
 
         hashes[i] = result;
     }
-    printf("Generating %lu/%lu hashes...\r", hashes.size(), hashes.size());
+    printf("Generated %lu hashes in %lu\n", hashes.size(), get_timestamp() - start);
     printf("\n");
 
     // TODO: sort & binary search
@@ -87,9 +87,10 @@ std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash,
     blake3_hasher_update(&hasher, prev_hash.data(), prev_hash.size());
     blake3_hasher_finalize(&hasher, target.data(), target.size());
 
+    uint64_t start = get_timestamp();
     for(int i = 0; i < hashes.size(); i++){
         if(check_prefix(hashes[i], target, difficulty)){
-            printf("Found solution at index %d.\n", i);
+            printf("Found solution at index %d in %lu time.\n", i, get_timestamp() - start);
             input.nonce = i;
             return { input, hashes[i] };
         }

@@ -45,6 +45,7 @@ std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, u
     for (int i = 0; i < input.size(); ++i) 
         base[i] = input[i] = rand() % 256;
 
+    uint64_t start = get_timestamp();
     while (get_timestamp() < end_time) {
         if(nonce % 10000000 == 0) {
             printf("Solving hash...\n");
@@ -61,7 +62,8 @@ std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, u
         blake3_hasher_finalize(&hasher, result.data(), result.size());
 
         if(check_leading_zeros(result, difficulty)) {
-            printf("Solved hash after %lu attempts.\n", nonce);
+            uint64_t duration = get_timestamp() - start;
+            printf("Solved hash after %lu attmpets, duration %lu.\n", nonce, duration);
             return { {}, input };
         }
 
