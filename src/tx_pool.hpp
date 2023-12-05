@@ -34,13 +34,13 @@ class TxPool {
         TransactionSet submitted_set;
         TransactionSet unconfirmed_set;
         std::mutex tx_lock;
-        void add_transaction(void* receiver, MessageBuffer request);
-        void pop_transactions(void* receiver, MessageBuffer request);
-        void confirm_transactions(void* receiver, MessageBuffer request);
-        void query_tx_status(void* receiver, MessageBuffer request);
-        void confirm_block(void* receiver, MessageBuffer request);
-        void request_handler(void* receiver, Message<MessageBuffer> request);
-        void query_tx_count(void* receiver, MessageBuffer data);
+        void add_transaction(zmq::socket_t &receiver, MessageBuffer request);
+        void pop_transactions(zmq::socket_t &receiver, MessageBuffer request);
+        void confirm_transactions(zmq::socket_t &receiver, MessageBuffer request);
+        void query_tx_status(zmq::socket_t &receiver, MessageBuffer request);
+        void confirm_block(zmq::socket_t &receiver, MessageBuffer request);
+        void query_tx_count(zmq::socket_t &receiver, MessageBuffer request);
+        void request_handler(zmq::socket_t &receiver, Message<MessageBuffer> request);
     public:
         TxPool(std::string blockchain);
         void start(std::string address);

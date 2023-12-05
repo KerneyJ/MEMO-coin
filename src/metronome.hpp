@@ -33,10 +33,10 @@ class Metronome {
         void submit_empty_block();
         int submit_block(Block block);
         BlockHeader request_last_block();
-        void handle_block(void* receiver, MessageBuffer data);
-        void get_difficulty(void* receiver, MessageBuffer data);
-        void request_handler(void* receiver, Message<MessageBuffer> request);
-        void register_validator(void* receiver, MessageBuffer data);
+        void handle_block(zmq::socket_t &receiver, MessageBuffer data);
+        void get_difficulty(zmq::socket_t &receiver, MessageBuffer data);
+        void register_validator(zmq::socket_t &receiver, MessageBuffer data);
+        void request_handler(zmq::socket_t &receiver, Message<MessageBuffer> request);
     public:
         Metronome(std::string);
         void start(std::string address);

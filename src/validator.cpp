@@ -8,7 +8,7 @@
 #include <thread>
 #include <vector>
 #include <string>
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include "block.hpp"
 #include "consensus.hpp"
@@ -29,24 +29,20 @@ Validator::Validator(std::string _blockchain, std::string _metronome,
     tx_pool = _tx_pool;
     consensus = _consensus;
     wallet = _wallet;
-
-    zmq_ctx = zmq_ctx_new();
 }
 
 Validator::~Validator() {
-    zmq_ctx_destroy(zmq_ctx);
     delete consensus;
 }
 
 //So that the metronome can track the number of active validators in the network. Reported by monitor.
 bool Validator::register_with_metronome() {
-    void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-    zmq_connect(requester, metronome.c_str());
+    zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
+    requester.connect(metronome);
 
     Message<int> response;
     request_response(requester, REGISTER_VALIDATOR, response);
 
-    zmq_close(requester);
     return response.type == STATUS_GOOD;
 }
 
@@ -99,8 +95,8 @@ Block Validator::create_block(BlockHeader prev_block, HashInput input, Blake3Has
 void Validator::request_new_block_header(BlockHeader &curr_block) {
     const int timeout = 500;
     
-    void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-    zmq_connect(requester, blockchain.c_str());
+    zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
+    requester.connect(blockchain);
 
     while(true) {
         Message<BlockHeader> response;
@@ -108,47 +104,41 @@ void Validator::request_new_block_header(BlockHeader &curr_block) {
         
         if(response.data.id > curr_block.id || curr_block.id == UINT32_MAX) {
             curr_block = response.data;
-            zmq_close(requester);
             return;
         }
-        printf("Out of date block, %d <= %d.\n", response.data.id, curr_block.id);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
     }
 
-    zmq_close(requester);
     throw std::runtime_error("Could not get new blocks.");
 }
 
 uint32_t Validator::request_difficulty() {
-    void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-    zmq_connect(requester, metronome.c_str());
+    zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
+    requester.connect(metronome);
 
     Message<uint32_t> response;
     request_response(requester, QUERY_DIFFICULTY, response);
 
-    zmq_close(requester);
     return response.data;
 }
 
 std::vector<Transaction> Validator::request_txs() {
-    void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-    zmq_connect(requester, tx_pool.c_str());
+    zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
+    requester.connect(tx_pool);
 
     Message<std::vector<Transaction>> response;
     request_response(requester, POP_TX, response);
 
-    zmq_close(requester);
     return response.data;
 }
 
 bool Validator::submit_block(Block block) {
-    void* requester = zmq_socket(zmq_ctx, ZMQ_REQ);
-    zmq_connect(requester, metronome.c_str());
+    zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
+    requester.connect(metronome);
 
     Message<NullMessage> response;
     request_response(requester, block, SUBMIT_BLOCK, response);
 
-    zmq_close(requester);
-    return response.type == STATUS_GOOD ? 0 : -1;
+    return response.type == STATUS_GOOD;
 }

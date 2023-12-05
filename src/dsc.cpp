@@ -3,7 +3,7 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include <zmq.h>
+#include <zmq.hpp>
 
 extern "C" {
     #include "../external/base58/base58.h"

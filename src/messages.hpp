@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <alpaca/alpaca.h>
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include "transaction.hpp"
 
@@ -68,21 +68,21 @@ PayloadType deserialize_payload(std::array<uint8_t, MESSAGE_BUF_SIZE> bytes) {
 }
 
 template<typename RequestType, typename ResponseType>
-void request_response(void* client, RequestType request, MessageType type, Message<ResponseType> &response) {
+void request_response(zmq::socket_t &client, RequestType request, MessageType type, Message<ResponseType> &response) {
     ReceiveBuffer res_buf;
 
     auto req_buf = serialize_message(request, type);
-    zmq_send(client, req_buf.data(), req_buf.size(), 0);
-    zmq_recv(client, res_buf.data(), res_buf.size(), 0);
+    client.send(zmq::buffer(req_buf));
+    auto result = client.recv(zmq::buffer(res_buf));
     response = deserialize_message<ResponseType>(res_buf);
 }
 
 template<typename ResponseType>
-void request_response(void* client, MessageType type, Message<ResponseType> &response) {
+void request_response(zmq::socket_t &client, MessageType type, Message<ResponseType> &response) {
     ReceiveBuffer res_buf;
 
     auto req_buf = serialize_message(type);
-    zmq_send(client, req_buf.data(), req_buf.size(), 0);
-    zmq_recv(client, res_buf.data(), res_buf.size(), 0);
+    client.send(zmq::buffer(req_buf));
+    auto result = client.recv(zmq::buffer(res_buf));
     response = deserialize_message<ResponseType>(res_buf);
 }

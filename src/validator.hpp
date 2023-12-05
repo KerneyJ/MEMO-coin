@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <zmq.hpp>
 
 #include "consensus.hpp"
 #include "block.hpp"
@@ -16,7 +17,7 @@
 
 class Validator {
     private:
-        void* zmq_ctx;
+        zmq::context_t zmq_ctx;
         std::string blockchain;
         std::string metronome;
         std::string tx_pool;
