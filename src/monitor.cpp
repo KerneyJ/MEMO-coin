@@ -20,13 +20,13 @@ void last_block() {
     std::string blockchain_address = get_blockchain_address();
     zmq_connect(requester, blockchain_address.c_str());
 
-    Message<Block> response;
+    Message<BlockHeader> response;
     request_response(requester, QUERY_LAST_BLOCK, response);
-    Block b = response.data;
+
     zmq_close(requester);
     zmq_ctx_destroy(context);
 
-    display_block(b);
+    display_block_header(response.data);
     printf("\n");
     return;
 }

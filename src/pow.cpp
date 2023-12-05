@@ -16,7 +16,7 @@
 #include "pow.hpp"
 #include "utils.hpp"
 
-static bool check_leading_zeros(Blake3Hash result, uint32_t difficulty) {
+static bool check_leading_zeros(const Blake3Hash &result, uint32_t difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size() * 8)

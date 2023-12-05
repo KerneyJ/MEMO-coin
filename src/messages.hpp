@@ -26,7 +26,7 @@ enum MessageType {
     QUERY_NUM_ADDRS,
     QUERY_COINS,
     REGISTER_VALIDATOR,
-    QUERY_NUM_VALIDATORS
+    QUERY_NUM_VALIDATORS,
 };
 
 template<typename Type>

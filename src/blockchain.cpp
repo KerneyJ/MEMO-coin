@@ -76,7 +76,7 @@ void BlockChain::get_balance(void* receiver, MessageBuffer data) {
 
 void BlockChain::last_block(void* receiver, MessageBuffer data){
     Block b = this->blocks.back();
-    auto bytes = serialize_message(b, STATUS_GOOD);
+    auto bytes = serialize_message(b.header, STATUS_GOOD);
     zmq_send(receiver, bytes.data(), bytes.size(), 0);
 }
 

@@ -18,6 +18,7 @@
 
 class Metronome {
     private:
+        bool sleeping;
         uint64_t prev_solved_time;
         uint64_t curr_solved_time;
         uint32_t difficulty;
