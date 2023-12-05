@@ -84,11 +84,10 @@ int submit_transaction(Transaction tx, std::string tx_pool) {
     Message<NullMessage> response;
     request_response(requester, tx, POST_TX, response);
 
-    return (response.type == STATUS_GOOD) ? 0 : -1;
+    return (response.header.type == STATUS_GOOD) ? 0 : -1;
 }
 
 Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
-    ReceiveBuffer res_buf;
     Wallet wallet;
 
     load_wallet(wallet);

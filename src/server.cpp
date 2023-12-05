@@ -6,23 +6,22 @@
 #include <thread>
 #include <string>
 #include <vector>
-#include <alpaca/alpaca.h>
 #include <zmq.hpp>
 
+#include "messages.hpp"
 #include "server.hpp"
 
 void Server::server_loop(zmq::context_t &context, msg_func message_handler, volatile sig_atomic_t *interrupt) {
     std::error_code ec;
 	Message<MessageBuffer> request;
-	ReceiveBuffer bytes;
+    std::vector<uint8_t> byte_vec;
 
-    zmq::socket_t receiver(context, ZMQ_REP);
-    receiver.connect("inproc://workers");
+    zmq::socket_t client(context, ZMQ_REP);
+    client.connect("inproc://workers");
 
     while (!(*interrupt)) {
-        auto result = receiver.recv(zmq::buffer(bytes));
-		request = deserialize_message<MessageBuffer>(bytes);
-		message_handler(receiver, request);
+		request = recv_message(client);
+		message_handler(client, request);
     }
 }
 

@@ -22,7 +22,7 @@ void display_wallet(Wallet& wallet) {
     std::string priv_key = base58_encode_key(wallet.priv_key);
 
     printf("Public Key: %s\n", pub_key.c_str());
-printf("Private Key: %s\n", priv_key.c_str());
+    printf("Private Key: %s\n", priv_key.c_str());
 }
 
 int query_balance(std::string blockchain_node) {
@@ -35,8 +35,9 @@ int query_balance(std::string blockchain_node) {
 
     requester.connect(blockchain_node);
 
-    Message<uint32_t> response;
-    request_response(requester, wallet.pub_key, QUERY_BAL, response);
+    send_message(requester, wallet.pub_key, QUERY_BAL);
+    auto response = recv_message<uint32_t>(requester);
+    // request_response(requester, wallet.pub_key, QUERY_BAL, response);
 
     return response.data;
 }

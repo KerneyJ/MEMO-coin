@@ -43,7 +43,7 @@ bool Validator::register_with_metronome() {
     Message<int> response;
     request_response(requester, REGISTER_VALIDATOR, response);
 
-    return response.type == STATUS_GOOD;
+    return response.header.type == STATUS_GOOD;
 }
 
 void Validator::start(std::string address) {
@@ -140,5 +140,5 @@ bool Validator::submit_block(Block block) {
     Message<NullMessage> response;
     request_response(requester, block, SUBMIT_BLOCK, response);
 
-    return response.type == STATUS_GOOD;
+    return response.header.type == STATUS_GOOD;
 }

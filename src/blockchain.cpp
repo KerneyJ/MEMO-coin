@@ -52,8 +52,7 @@ void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
     const std::lock_guard<std::mutex> lock(blockmutex);
     this->blocks.push_back(block);
     sync_bal(block);
-    auto bytes = serialize_message(STATUS_GOOD);
-    client.send(zmq::buffer(bytes));
+    send_message(client, STATUS_GOOD);
     printf("Block added, %lu blocks\n", this->blocks.size());
 
     zmq::context_t& context = server.get_context();
@@ -69,15 +68,12 @@ void BlockChain::get_balance(zmq::socket_t &client, MessageBuffer data) {
     auto pub_key = deserialize_payload<Ed25519Key>(data);
     auto entry = this->ledger.find(pub_key);
     uint32_t balance = (entry == this->ledger.end()) ? 0 : entry->second;
-
-    auto bytes = serialize_message(balance, STATUS_GOOD);
-    client.send(zmq::buffer(bytes));
+    send_message(client, balance, STATUS_GOOD);
 }
 
 void BlockChain::last_block(zmq::socket_t &client, MessageBuffer data){
     Block b = this->blocks.back();
-    auto bytes = serialize_message(b.header, STATUS_GOOD);
-    client.send(zmq::buffer(bytes));
+    send_message(client, b.header, STATUS_GOOD);
 }
 
 void BlockChain::tx_status(zmq::socket_t &client, MessageBuffer data){
@@ -87,14 +83,12 @@ void BlockChain::tx_status(zmq::socket_t &client, MessageBuffer data){
         for(size_t nt = 0; nt < b.transactions.size(); nt++){
             Transaction t = b.transactions[nt];
             if(t.src == tx_key.first && t.id == tx_key.second){
-                auto bytes = serialize_message(Transaction::CONFIRMED, STATUS_GOOD);
-                client.send(zmq::buffer(bytes));
+                send_message(client, Transaction::CONFIRMED, STATUS_GOOD);
                 return;
             }
         }
     }
-    auto bytes = serialize_message(Transaction::UNKNOWN, STATUS_GOOD);
-    client.send(zmq::buffer(bytes));
+    send_message(client, Transaction::UNKNOWN, STATUS_GOOD);
 }
 
 void BlockChain::load_genesis(){
@@ -108,8 +102,7 @@ void BlockChain::load_genesis(){
 void BlockChain::get_num_addr(zmq::socket_t &client, MessageBuffer data) {
     printf("getting number of blockchain addresses in blockchain.cpp");
     int num_addresses = this->ledger.size();
-    auto bytes = serialize_message(num_addresses, STATUS_GOOD);
-    client.send(zmq::buffer(bytes));
+    send_message(client, num_addresses, STATUS_GOOD);
     return;
 }
 
@@ -129,13 +122,12 @@ void BlockChain::get_total_coins(zmq::socket_t &client, MessageBuffer data) {
     fflush(stdout);
     // Now 'sum' contains the sum of all uint32_t values in the unordered_map
     int total_coins = sum;
-    auto bytes = serialize_message(total_coins, STATUS_GOOD);
-    client.send(zmq::buffer(bytes));
+    send_message(client, total_coins, STATUS_GOOD);
     return;
 }
 
 void BlockChain::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
-    switch (request.type) {
+    switch (request.header.type) {
         case QUERY_BAL:
             return get_balance(client, request.data);
         case SUBMIT_BLOCK:

@@ -1,8 +1,12 @@
 #include <array>
+#include <cstddef>
 #include <cstdint>
+#include <stdexcept>
+#include <system_error>
 #include <vector>
 #include <alpaca/alpaca.h>
 #include <zmq.hpp>
+#include <zmq_addon.hpp>
 
 #include "transaction.hpp"
 
@@ -29,60 +33,96 @@ enum MessageType {
     QUERY_NUM_VALIDATORS,
 };
 
+struct MessageHeader {
+    MessageType type;
+    size_t size;
+};
+
+template<typename Type>
+struct MessagePayload {
+    Type data;
+};
+
 template<typename Type>
 struct Message {
-    MessageType type;
+    MessageHeader header;
     Type data;
 };
 
 class NullMessage {};
 
-typedef std::array<uint8_t, MESSAGE_BUF_SIZE> MessageBuffer;
-typedef std::array<uint8_t, MESSAGE_SIZE> ReceiveBuffer;
+typedef std::vector<uint8_t> MessageBuffer;
 
 constexpr auto OPTIONS = alpaca::options::fixed_length_encoding;
 
 template<typename PayloadType>
-std::vector<uint8_t> serialize_message(PayloadType data, MessageType type) {
-    std::vector<uint8_t> bytes;
-    Message<PayloadType> msg = { type, data };
-    auto bytes_written = alpaca::serialize<OPTIONS>(msg, bytes);
-    return bytes; 
+void send_message(zmq::socket_t &client, PayloadType message, MessageType type) {
+    std::vector<uint8_t> payload_bytes, header_bytes;
+    MessagePayload<PayloadType> payload = { message };
+
+    alpaca::serialize<OPTIONS>(payload, payload_bytes);
+
+    MessageHeader header = {
+        .type = type,
+        .size = payload_bytes.size(),
+    };
+
+    alpaca::serialize<OPTIONS>(header, header_bytes);
+
+    std::array<zmq::const_buffer, 2> multipart_msg { 
+        zmq::buffer(header_bytes), 
+        zmq::buffer(payload_bytes),
+    };
+
+    zmq::send_multipart(client, multipart_msg);
 }
 
-// use for messages that do not need any response data
-inline std::vector<uint8_t> serialize_message(MessageType type) {
-    return serialize_message<NullMessage>({}, type);
+inline void send_message(zmq::socket_t &client, MessageType type) {
+    send_message<NullMessage>(client, {}, type);
 }
 
 template<typename PayloadType>
-Message<PayloadType> deserialize_message(std::array<uint8_t, MESSAGE_SIZE> bytes){
+Message<PayloadType> recv_message(zmq::socket_t &client) {
+    Message<PayloadType> message;
     std::error_code ec;
-    return alpaca::deserialize<OPTIONS, Message<PayloadType>>(bytes, ec); 
+    std::vector<zmq::message_t> recv_msgs;
+
+    const auto ret = zmq::recv_multipart(client, std::back_inserter(recv_msgs));
+
+    if(ret != 2)
+        throw std::runtime_error("Received malformed message.");
+
+    uint8_t* header_loc = (uint8_t*) recv_msgs[0].data();
+    size_t header_size = recv_msgs[0].size();
+    std::vector<uint8_t> header_buf(&header_loc[0], &header_loc[header_size]);
+
+
+    uint8_t* payload_loc = (uint8_t*) recv_msgs[1].data();
+    size_t payload_size = recv_msgs[1].size();
+    std::vector<uint8_t> payload_buf(&payload_loc[0], &payload_loc[payload_size]);
+    
+    message.header = alpaca::deserialize<OPTIONS, MessageHeader>(header_buf, ec);
+    message.data = alpaca::deserialize<OPTIONS, MessagePayload<PayloadType>>(payload_buf, ec).data;
+
+    return message;
 }
 
+Message<MessageBuffer> recv_message(zmq::socket_t &client);
+
 template<typename PayloadType>
-PayloadType deserialize_payload(std::array<uint8_t, MESSAGE_BUF_SIZE> bytes) {
+PayloadType deserialize_payload(MessageBuffer bytes) {
     std::error_code ec;
-    return alpaca::deserialize<OPTIONS, PayloadType>(bytes, ec); 
+    return alpaca::deserialize<OPTIONS, MessagePayload<PayloadType>>(bytes, ec).data; 
 }
 
 template<typename RequestType, typename ResponseType>
 void request_response(zmq::socket_t &client, RequestType request, MessageType type, Message<ResponseType> &response) {
-    ReceiveBuffer res_buf;
-
-    auto req_buf = serialize_message(request, type);
-    client.send(zmq::buffer(req_buf));
-    auto result = client.recv(zmq::buffer(res_buf));
-    response = deserialize_message<ResponseType>(res_buf);
+    send_message(client, request, type);
+    response = recv_message<ResponseType>(client);
 }
 
 template<typename ResponseType>
 void request_response(zmq::socket_t &client, MessageType type, Message<ResponseType> &response) {
-    ReceiveBuffer res_buf;
-
-    auto req_buf = serialize_message(type);
-    client.send(zmq::buffer(req_buf));
-    auto result = client.recv(zmq::buffer(res_buf));
-    response = deserialize_message<ResponseType>(res_buf);
+    send_message(client, type);
+    response = recv_message<ResponseType>(client);
 }

@@ -111,7 +111,7 @@ int Metronome::submit_block(Block block) {
     Message<NullMessage> response;
     request_response(requester, block, SUBMIT_BLOCK, response);
 
-    return response.type == STATUS_GOOD ? 0 : -1;
+    return response.header.type == STATUS_GOOD ? 0 : -1;
 }
 
 BlockHeader Metronome::request_last_block() {
@@ -124,24 +124,20 @@ BlockHeader Metronome::request_last_block() {
     return response.data;
 }
 
-void Metronome::handle_block(zmq::socket_t &receiver, MessageBuffer data) {
+void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(block_mutex);
     auto block = deserialize_payload<Block>(data);
 
     // TODO: validate block
     if(block.header.id != last_block.id + 1) {
         printf("Block not valid. Rejecting...\n");
-
-        auto bytes = serialize_message(STATUS_BAD);
-        receiver.send(zmq::buffer(bytes));
+        send_message(client, STATUS_BAD);
         return;
     }
 
     if(submit_block(block) < 0) {
         printf("Block rejected from blockchain.\n");
-
-        auto bytes = serialize_message(STATUS_BAD);
-        receiver.send(zmq::buffer(bytes));
+        send_message(client, STATUS_BAD);
         return;
     }
 
@@ -152,36 +148,33 @@ void Metronome::handle_block(zmq::socket_t &receiver, MessageBuffer data) {
     sleeping = false;
     block_timer.notify_one();
 
-    auto bytes = serialize_message(STATUS_GOOD);
-    receiver.send(zmq::buffer(bytes));
+    send_message(client, STATUS_GOOD);
 }
 
-void Metronome::get_difficulty(zmq::socket_t &receiver, MessageBuffer data) {
+void Metronome::get_difficulty(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(diff_mutex);
-    auto bytes = serialize_message(difficulty, STATUS_GOOD);
-    receiver.send(zmq::buffer(bytes));
+    send_message(client, difficulty, STATUS_GOOD);
 }
 
 //increments the number of active_validators every time a new validator attempts to mine the block. 
 //active_validators is reset at each block so the accumulates over the duration of a block (e.g. 6 seconds).
 //TODO: keep a list of active validator addresses. Validator should send its wallet public key.
-void Metronome::register_validator(zmq::socket_t &receiver, MessageBuffer data) {
+void Metronome::register_validator(zmq::socket_t &client, MessageBuffer data) {
     this->active_validators += 1;
     printf("Registered new validator [%d]\n", this->active_validators);
-    auto bytes = serialize_message(STATUS_GOOD);
-    receiver.send(zmq::buffer(bytes));
+    send_message(client, STATUS_GOOD);
 }
 
-void Metronome::request_handler(zmq::socket_t &receiver, Message<MessageBuffer> request) {
-    switch (request.type) {
+void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
+    switch (request.header.type) {
         case SUBMIT_BLOCK:
-            return handle_block(receiver, request.data);
+            return handle_block(client, request.data);
         case QUERY_DIFFICULTY:
-            return get_difficulty(receiver, request.data);
+            return get_difficulty(client, request.data);
         case REGISTER_VALIDATOR:
-            return register_validator(receiver, request.data);
+            return register_validator(client, request.data);
         // case QUERY_NUM_VALIDATORS:
-        //     return register_validator(receiver, request.data);
+        //     return register_validator(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
