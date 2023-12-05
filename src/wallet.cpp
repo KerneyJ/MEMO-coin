@@ -1,7 +1,7 @@
 #include <array>
 #include <cstdint>
 #include <fstream>
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include "config.hpp"
 #include "defs.hpp"
@@ -28,18 +28,15 @@ void display_wallet(Wallet& wallet) {
 int query_balance(std::string blockchain_node) {
     Wallet wallet;
 
-   load_wallet(wallet);
+    load_wallet(wallet);
 
-    void* context = zmq_ctx_new();
-    void* requester = zmq_socket(context, ZMQ_REQ);
+    zmq::context_t context;
+    zmq::socket_t requester(context, ZMQ_REQ);
 
-    zmq_connect(requester, blockchain_node.c_str());
+    requester.connect(blockchain_node);
 
-    Message<uint32_t> response;
-    request_response(requester, wallet.pub_key, QUERY_BAL, response);
-
-    zmq_close(requester);
-    zmq_ctx_destroy(context);
+    send_message(requester, wallet.pub_key, QUERY_BAL);
+    auto response = recv_message<uint32_t>(requester);
 
     return response.data;
 }

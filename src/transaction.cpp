@@ -3,7 +3,7 @@
 #include <string>
 #include <chrono>
 #include <system_error>
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include "transaction.hpp"
 #include "keys.hpp"
@@ -76,37 +76,30 @@ void display_transaction(Transaction tx) {
 }
 
 int submit_transaction(Transaction tx, std::string tx_pool) {
-    void *context = zmq_ctx_new ();
-    void *requester = zmq_socket (context, ZMQ_REQ);
+    zmq::context_t context;
+    zmq::socket_t requester(context, ZMQ_REQ);
 
-    zmq_connect (requester, tx_pool.c_str());
+    requester.connect(tx_pool);
 
-    Message<NullMessage> response;
-    request_response(requester, tx, POST_TX, response);
+    send_message(requester, tx, POST_TX);
+    auto response = recv_message<NullMessage>(requester);
 
-    zmq_close (requester);
-    zmq_ctx_destroy (context);
-
-    return (response.type == STATUS_GOOD) ? 0 : -1;
+    return (response.header.type == STATUS_GOOD) ? 0 : -1;
 }
 
 Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
-    ReceiveBuffer res_buf;
     Wallet wallet;
 
     load_wallet(wallet);
     std::pair<Ed25519Key, uint64_t> tx_key = { wallet.pub_key, id };
 
-    void *context = zmq_ctx_new ();
-    void *requester = zmq_socket (context, ZMQ_REQ);
+    zmq::context_t context;
+    zmq::socket_t requester(context, ZMQ_REQ);
 
-    zmq_connect (requester, tx_pool.c_str());
+    requester.connect(tx_pool);
 
-    Message<Transaction::Status> response;
-    request_response(requester, tx_key, QUERY_TX_STATUS, response);
-
-    zmq_close (requester);
-    zmq_ctx_destroy (context);
+    send_message(requester, tx_key, QUERY_TX_STATUS);
+    auto response = recv_message<Transaction::Status>(requester);
 
     return response.data;
 }

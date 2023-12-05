@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <zmq.h>
+#include <zmq.hpp>
 
 #include "block.hpp"
 #include "defs.hpp"
@@ -26,7 +26,7 @@ void TxPool::start(std::string address) {
 		throw std::runtime_error("Server could not bind.");
 }
 
-void TxPool::add_transaction(void* receiver, MessageBuffer data) {
+void TxPool::add_transaction(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
     
     auto tx = deserialize_payload<Transaction>(data);
@@ -36,9 +36,7 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
 
     if(!verify_transaction_signature(tx)) {
         printf("Signature invalid. Rejecting transaction!\n");
-
-        auto bytes = serialize_message(STATUS_BAD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
+        send_message(client, STATUS_BAD);
         return;
     }
 
@@ -46,11 +44,10 @@ void TxPool::add_transaction(void* receiver, MessageBuffer data) {
     submitted_queue.push_back(tx);
     submitted_set.insert(tx);
 
-    auto bytes = serialize_message(STATUS_GOOD);
-    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    send_message(client, STATUS_GOOD);
 }
 
-void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
+void TxPool::pop_transactions(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
 
     // Only take block size - 1 so there is room for the reward
@@ -69,11 +66,10 @@ void TxPool::pop_transactions(void* receiver, MessageBuffer data) {
         unconfirmed_set.insert(tx);
     }
 
-    auto bytes = serialize_message(txs, STATUS_GOOD);
-    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    send_message(client, txs, STATUS_GOOD);
 }
 
-void TxPool::confirm_transactions(void* receiver, MessageBuffer data) {
+void TxPool::confirm_transactions(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
 
     auto block = deserialize_payload<Block>(data);
@@ -91,65 +87,54 @@ void TxPool::confirm_transactions(void* receiver, MessageBuffer data) {
         }
     }
 
-    auto bytes = serialize_message(STATUS_GOOD);
-    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    send_message(client, STATUS_GOOD);
 }
 
-void TxPool::query_tx_status(void* receiver, MessageBuffer data) {
+void TxPool::query_tx_status(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
 
     auto tx_key = deserialize_payload<std::pair<Ed25519Key, uint64_t>>(data);
     Transaction tx = { .src = tx_key.first, .id = tx_key.second };
 
     if(submitted_set.find(tx) != submitted_set.end()) {
-        auto bytes = serialize_message(Transaction::SUBMITTED, STATUS_GOOD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
+        send_message(client, Transaction::SUBMITTED, STATUS_GOOD);
         return;
     }
 
     if(unconfirmed_set.find(tx) != unconfirmed_set.end()) {
-        auto bytes = serialize_message(Transaction::UNCONFIRMED, STATUS_GOOD);
-        zmq_send (receiver, bytes.data(), bytes.size(), 0);
+        send_message(client, Transaction::UNCONFIRMED, STATUS_GOOD);
         return;
     }
 
-    void* requester = zmq_socket(server.get_context(), ZMQ_REQ);
-    zmq_connect(requester, blockchain.c_str());
+    zmq::socket_t requester(server.get_context(), ZMQ_REQ);
+    requester.connect(blockchain);
 
-    Message<Transaction::Status> response;
-    request_response(requester, tx_key, QUERY_TX_STATUS, response);
+    send_message(requester, tx_key, QUERY_TX_STATUS);
+    auto response = recv_message<Transaction::Status>(requester);
 
-    zmq_close(requester);
-
-    auto bytes = serialize_message(response.data, STATUS_GOOD);
-    zmq_send (receiver, bytes.data(), bytes.size(), 0);
+    send_message(client, response.data, STATUS_GOOD);
 }
 
 
 //Count the number of transactions in the transaction pool.
-void TxPool::query_tx_count(void* receiver, MessageBuffer data) {
+void TxPool::query_tx_count(zmq::socket_t &client, MessageBuffer data) {
     int tx_count = submitted_queue.size() + unconfirmed_queue.size();
-
-    //Send the data back to the monitor
-
-    auto bytes = serialize_message(tx_count, STATUS_GOOD);
-    zmq_send (receiver, bytes.data(), bytes.size(), 0);
-    return;
+    send_message(client, tx_count, STATUS_GOOD);
 }
 
 
-void TxPool::request_handler(void* receiver, Message<MessageBuffer> request) {
-    switch (request.type) {
+void TxPool::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
+    switch (request.header.type) {
         case POP_TX:
-            return pop_transactions(receiver, request.data);
+            return pop_transactions(client, request.data);
         case POST_TX:
-            return add_transaction(receiver, request.data);
+            return add_transaction(client, request.data);
         case QUERY_TX_STATUS:
-            return query_tx_status(receiver, request.data);
+            return query_tx_status(client, request.data);
         case QUERY_TX_COUNT: 
-            return query_tx_count(receiver, request.data);
+            return query_tx_count(client, request.data);
         case CONFIRM_BLOCK:
-            return confirm_transactions(receiver, request.data);
+            return confirm_transactions(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

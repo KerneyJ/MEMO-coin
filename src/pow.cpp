@@ -16,7 +16,7 @@
 #include "pow.hpp"
 #include "utils.hpp"
 
-static bool check_leading_zeros(Blake3Hash result, uint32_t difficulty) {
+static bool check_leading_zeros(const Blake3Hash &result, uint32_t difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size() * 8)
@@ -63,7 +63,7 @@ std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, u
 
         if(check_leading_zeros(result, difficulty)) {
             uint64_t duration = get_timestamp() - start;
-            printf("Solved hash after %lu attmpets, duration %lu.\n", nonce, duration);
+            printf("Solved hash after %lu attempts, duration %lu.\n", nonce, duration);
             return { {}, input };
         }
 
@@ -72,7 +72,7 @@ std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, u
 
     printf("Time expired. No solution found in %lu attempts.\n", nonce);
 
-    result.fill(0);
+    input.fill(0);
     return { {}, input };
 }
 

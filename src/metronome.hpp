@@ -18,6 +18,7 @@
 
 class Metronome {
     private:
+        bool sleeping;
         uint64_t prev_solved_time;
         uint64_t curr_solved_time;
         uint32_t difficulty;
@@ -32,10 +33,10 @@ class Metronome {
         void submit_empty_block();
         int submit_block(Block block);
         BlockHeader request_last_block();
-        void handle_block(void* receiver, MessageBuffer data);
-        void get_difficulty(void* receiver, MessageBuffer data);
-        void request_handler(void* receiver, Message<MessageBuffer> request);
-        void register_validator(void* receiver, MessageBuffer data);
+        void handle_block(zmq::socket_t &client, MessageBuffer data);
+        void get_difficulty(zmq::socket_t &client, MessageBuffer data);
+        void register_validator(zmq::socket_t &client, MessageBuffer data);
+        void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
     public:
         Metronome(std::string);
         void start(std::string address);

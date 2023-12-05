@@ -19,7 +19,7 @@
 #include "utils.hpp"
 #include "pom.hpp"
 
-static bool check_prefix(Blake3Hash result, Blake3Hash target, uint32_t difficulty) {
+static bool check_prefix(const Blake3Hash &result, const Blake3Hash &target, uint32_t difficulty) {
     int i, j, correct = 0;
 
     if(difficulty > result.size() * 8)
@@ -38,15 +38,10 @@ static bool check_prefix(Blake3Hash result, Blake3Hash target, uint32_t difficul
     return correct >= difficulty;
 }
 
-static int prefix_binary_search(std::vector<Blake3Hash> hashes, Blake3Hash target, int difficulty)
+static int prefix_binary_search(const std::vector<Blake3Hash> &hashes, const Blake3Hash& target, int difficulty)
 {
-    int i = 0;
-    unsigned long int last_time = get_timestamp();
     int l = 0, r = hashes.size() - 1;
     while (l <= r) {
-        i++;
-        printf("iteration: %d - %lu\n", i, get_timestamp() - last_time);
-        last_time = get_timestamp();
         int m = l + (r - l) / 2;
 
         if (check_prefix(hashes[m], target, difficulty))
@@ -54,7 +49,6 @@ static int prefix_binary_search(std::vector<Blake3Hash> hashes, Blake3Hash targe
 
         if (hashes[m] < target)
             l = m + 1;
-
         else
             r = m - 1;
     }
@@ -91,13 +85,12 @@ void ProofOfMemory::gen_hashes(uint32_t memory){
 
         hashes[i] = result;
     }
-    printf("Generated %lu hashes in %lu microseconds\n", hashes.size(), get_timestamp() - start);
-    printf("\n");
+    printf("Generated %lu hashes in %lu milliseconds\n", hashes.size(), (get_timestamp() - start) / 1000);
 
     printf("Sorting %lu hashes...\n", hashes.size());
     start = get_timestamp();
     std::sort(hashes.begin(), hashes.end());
-    printf("Finished sorting in %lu microseconds.\n", get_timestamp() - start);
+    printf("Finished sorting in %lu seconds.\n", (get_timestamp() - start)/1000000);
 }
 
 std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash, uint32_t difficulty, uint64_t) {
@@ -114,14 +107,7 @@ std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash,
     blake3_hasher_finalize(&hasher, target.data(), target.size());
 
     uint64_t start = get_timestamp();
-    // int idx;
-    // for(idx = 0; idx < hashes.size(); idx++){
-    //     if(check_prefix(hashes[idx], target, difficulty))
-    //         break;
-    //     break;
-    // }
     int idx = prefix_binary_search(hashes, target, difficulty);
-    printf("Found solution at index %d in %lu time.\n", idx, get_timestamp() - start);
     
     if(idx == -1) {
         printf("No solution found in %lu hashes.\n", hashes.size());
@@ -132,6 +118,8 @@ std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash,
         target.fill(0);
         return { input, target };
     }
+
+    printf("Found solution at index %d in %lu microseconds.\n", idx, get_timestamp() - start);
 
     input.nonce = 69;
     return { input, hashes[idx] };

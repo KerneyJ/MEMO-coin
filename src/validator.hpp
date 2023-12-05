@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <zmq.hpp>
 
 #include "consensus.hpp"
 #include "block.hpp"
@@ -16,15 +17,16 @@
 
 class Validator {
     private:
-        void* zmq_ctx;
+        zmq::context_t zmq_ctx;
         std::string blockchain;
         std::string metronome;
         std::string tx_pool;
         IConsensusModel* consensus;
         Wallet wallet;
         Block create_block(BlockHeader bh, HashInput input, Blake3Hash solution, uint32_t difficulty);
-        int submit_block(Block block);
-        BlockHeader request_block_header(BlockHeader);
+        bool submit_block(Block block);
+        bool register_with_metronome();
+        void request_new_block_header(BlockHeader&);
         uint32_t request_difficulty();
         std::vector<Transaction> request_txs();
     public:
