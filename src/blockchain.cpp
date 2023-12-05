@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <vector>
+#include <mutex>
 #include <cassert>
 #include <zmq.h>
 
@@ -49,6 +50,7 @@ void BlockChain::add_block(void* receiver, MessageBuffer data) {
 
     // TODO ensure block is valid
     // TODO send the list of transactions in the accepted block the the tx pool
+    const std::lock_guard<std::mutex> lock(blockmutex);
     this->blocks.push_back(block);
     sync_bal(block);
     auto bytes = serialize_message(STATUS_GOOD);
