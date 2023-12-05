@@ -114,15 +114,3 @@ PayloadType deserialize_payload(MessageBuffer bytes) {
     std::error_code ec;
     return alpaca::deserialize<OPTIONS, MessagePayload<PayloadType>>(bytes, ec).data; 
 }
-
-template<typename RequestType, typename ResponseType>
-void request_response(zmq::socket_t &client, RequestType request, MessageType type, Message<ResponseType> &response) {
-    send_message(client, request, type);
-    response = recv_message<ResponseType>(client);
-}
-
-template<typename ResponseType>
-void request_response(zmq::socket_t &client, MessageType type, Message<ResponseType> &response) {
-    send_message(client, type);
-    response = recv_message<ResponseType>(client);
-}

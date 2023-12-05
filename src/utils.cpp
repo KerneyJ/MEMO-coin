@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <chrono>
+#include <cstdio>
 
 #include "defs.hpp"
 

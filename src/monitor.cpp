@@ -7,6 +7,7 @@ Commands for getting info about the blockchain's state.
 #include "wallet.hpp"
 #include "keys.hpp"
 #include "messages.hpp"
+#include <cstdint>
 #include <zmq.hpp>
 #include "config.hpp"
 #include "utils.hpp"
@@ -20,12 +21,11 @@ void last_block() {
     std::string blockchain_address = get_blockchain_address();
     requester.connect(blockchain_address);
 
-    Message<BlockHeader> response;
-    request_response(requester, QUERY_LAST_BLOCK, response);
+    send_message(requester, QUERY_LAST_BLOCK);
+    auto response = recv_message<BlockHeader>(requester);
 
     display_block_header(response.data);
     printf("\n");
-    return;
 }
 
 
@@ -39,12 +39,11 @@ void num_trans() {
     std::string tx_pool = get_tx_pool_address();
     requester.connect(tx_pool);
 
-    Message<uint32_t> response;
-    request_response(requester, QUERY_TX_COUNT, response);
+    send_message(requester, QUERY_TX_COUNT);
+    auto response = recv_message<uint32_t>(requester);
 
-    printf("size of transation queue: %d transactions in queue", response.data);
+    printf("Size of transation queue: %d\n", response.data);
     printf("\n");
-    return;
 }
 //prints the number of validators in the network. Number is reset at beginning of each block.
 //Validator registers with metronome when it attempts to mine the block.
@@ -55,11 +54,10 @@ void num_validators() {
     std::string metronome_address = get_metronome_address();
     requester.connect(metronome_address);
 
-    Message<int> response;
-    request_response(requester, QUERY_NUM_VALIDATORS, response);
-    int num_validators = response.data;
-    printf("\number of validators attempting to mine current block: %d\n", num_validators);
-    return;
+    send_message(requester, QUERY_NUM_VALIDATORS);
+    auto response = recv_message<uint32_t>(requester);
+    
+    printf("Number of validators: %d\n", response.data);
 }
 //prints the number of wallet addresses
 void num_wallets() {
@@ -68,11 +66,10 @@ void num_wallets() {
     std::string blockchain_address = get_blockchain_address();
     requester.connect(blockchain_address);
 
-    Message<int> response;
-    request_response(requester, QUERY_NUM_ADDRS, response);
-    int num_addresses = response.data;
-    printf("Number of wallets on blockchain: %d\n", num_addresses);
-    return;
+    send_message(requester, QUERY_NUM_ADDRS);
+    auto response = recv_message<uint32_t>(requester);
+    
+    printf("Number of wallets on blockchain: %d\n", response.data);
 }
 
 //prints the total number of coins in circulation by adding up the value of all the accounts in the ledger.
@@ -82,11 +79,10 @@ void num_coins() {
     std::string blockchain_address = get_blockchain_address();
     requester.connect(blockchain_address);
 
-    Message<int> response;
-    request_response(requester, QUERY_COINS, response);
-    int coin_count = response.data;
-    printf("Net total number of coins in blockchain: %d coins.\n", coin_count);
-    return;
+    send_message(requester, QUERY_COINS);
+    auto response = recv_message<uint32_t>(requester);
+    
+    printf("Net total number of coins in blockchain: %d coins.\n", response.data);
 }
 
 // prints the number of hashes per second

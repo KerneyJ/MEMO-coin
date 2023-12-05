@@ -60,8 +60,8 @@ void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
 
     requester.connect(txpool_address);
 
-    Message<NullMessage> response;
-    request_response(requester, block, CONFIRM_BLOCK, response);
+    send_message(requester, block, CONFIRM_BLOCK);
+    auto response = recv_message<NullMessage>(requester);
 }
 
 void BlockChain::get_balance(zmq::socket_t &client, MessageBuffer data) {

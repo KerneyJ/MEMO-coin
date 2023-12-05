@@ -81,8 +81,8 @@ int submit_transaction(Transaction tx, std::string tx_pool) {
 
     requester.connect(tx_pool);
 
-    Message<NullMessage> response;
-    request_response(requester, tx, POST_TX, response);
+    send_message(requester, tx, POST_TX);
+    auto response = recv_message<NullMessage>(requester);
 
     return (response.header.type == STATUS_GOOD) ? 0 : -1;
 }
@@ -98,8 +98,8 @@ Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
 
     requester.connect(tx_pool);
 
-    Message<Transaction::Status> response;
-    request_response(requester, tx_key, QUERY_TX_STATUS, response);
+    send_message(requester, tx_key, QUERY_TX_STATUS);
+    auto response = recv_message<Transaction::Status>(requester);
 
     return response.data;
 }

@@ -231,6 +231,7 @@ int main(int argc, char** argv) {
 
     if(command == "monitor")
         return run_monitor(args);
+    
     printf("Could not find component to run.\n");
     return -1;
 }

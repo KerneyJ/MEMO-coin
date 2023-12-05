@@ -40,8 +40,8 @@ bool Validator::register_with_metronome() {
     zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
     requester.connect(metronome);
 
-    Message<int> response;
-    request_response(requester, REGISTER_VALIDATOR, response);
+    send_message(requester, REGISTER_VALIDATOR);
+    auto response = recv_message<NullMessage>(requester);
 
     return response.header.type == STATUS_GOOD;
 }
@@ -99,8 +99,8 @@ void Validator::request_new_block_header(BlockHeader &curr_block) {
     requester.connect(blockchain);
 
     while(true) {
-        Message<BlockHeader> response;
-        request_response(requester, QUERY_LAST_BLOCK, response);
+        send_message(requester, QUERY_LAST_BLOCK);
+        auto response = recv_message<BlockHeader>(requester);
         
         if(response.data.id > curr_block.id || curr_block.id == UINT32_MAX) {
             curr_block = response.data;
@@ -117,8 +117,8 @@ uint32_t Validator::request_difficulty() {
     zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
     requester.connect(metronome);
 
-    Message<uint32_t> response;
-    request_response(requester, QUERY_DIFFICULTY, response);
+    send_message(requester, QUERY_DIFFICULTY);
+    auto response = recv_message<uint32_t>(requester);
 
     return response.data;
 }
@@ -127,8 +127,8 @@ std::vector<Transaction> Validator::request_txs() {
     zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
     requester.connect(tx_pool);
 
-    Message<std::vector<Transaction>> response;
-    request_response(requester, POP_TX, response);
+    send_message(requester, POP_TX);
+    auto response = recv_message<std::vector<Transaction>>(requester);
 
     return response.data;
 }
@@ -137,8 +137,10 @@ bool Validator::submit_block(Block block) {
     zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
     requester.connect(metronome);
 
-    Message<NullMessage> response;
-    request_response(requester, block, SUBMIT_BLOCK, response);
+    send_message(requester, block, SUBMIT_BLOCK);
+    auto response = recv_message<NullMessage>(requester);
+
+    printf("response header%d\n", response.header.type);
 
     return response.header.type == STATUS_GOOD;
 }

@@ -108,8 +108,8 @@ int Metronome::submit_block(Block block) {
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
     requester.connect(blockchain);
 
-    Message<NullMessage> response;
-    request_response(requester, block, SUBMIT_BLOCK, response);
+    send_message(requester, block, SUBMIT_BLOCK);
+    auto response = recv_message<NullMessage>(requester);
 
     return response.header.type == STATUS_GOOD ? 0 : -1;
 }
@@ -118,8 +118,8 @@ BlockHeader Metronome::request_last_block() {
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
     requester.connect(blockchain);
 
-    Message<BlockHeader> response;
-    request_response(requester, QUERY_LAST_BLOCK, response);
+    send_message(requester, QUERY_LAST_BLOCK);
+    auto response = recv_message<BlockHeader>(requester);
 
     return response.data;
 }

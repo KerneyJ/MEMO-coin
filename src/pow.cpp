@@ -63,7 +63,7 @@ std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, u
 
         if(check_leading_zeros(result, difficulty)) {
             uint64_t duration = get_timestamp() - start;
-            printf("Solved hash after %lu attmpets, duration %lu.\n", nonce, duration);
+            printf("Solved hash after %lu attempts, duration %lu.\n", nonce, duration);
             return { {}, input };
         }
 
@@ -72,7 +72,7 @@ std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, u
 
     printf("Time expired. No solution found in %lu attempts.\n", nonce);
 
-    result.fill(0);
+    input.fill(0);
     return { {}, input };
 }
 

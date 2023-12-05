@@ -1,7 +1,7 @@
 #include "messages.hpp"
 #include <cstddef>
 
-Message<MessageBuffer> recv_message_z(zmq::socket_t &client) {
+Message<MessageBuffer> recv_message(zmq::socket_t &client) {
     Message<MessageBuffer> message;
     std::error_code ec;
     std::vector<zmq::message_t> recv_msgs;

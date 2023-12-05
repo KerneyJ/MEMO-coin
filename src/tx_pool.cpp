@@ -109,8 +109,8 @@ void TxPool::query_tx_status(zmq::socket_t &client, MessageBuffer data) {
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
     requester.connect(blockchain);
 
-    Message<Transaction::Status> response;
-    request_response(requester, tx_key, QUERY_TX_STATUS, response);
+    send_message(requester, tx_key, QUERY_TX_STATUS);
+    auto response = recv_message<Transaction::Status>(requester);
 
     send_message(client, response.data, STATUS_GOOD);
 }

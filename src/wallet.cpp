@@ -37,7 +37,6 @@ int query_balance(std::string blockchain_node) {
 
     send_message(requester, wallet.pub_key, QUERY_BAL);
     auto response = recv_message<uint32_t>(requester);
-    // request_response(requester, wallet.pub_key, QUERY_BAL, response);
 
     return response.data;
 }
