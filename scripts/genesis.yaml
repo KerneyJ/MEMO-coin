@@ -1,0 +1,40 @@
+
+# struct BlockHeader {
+#     HashInput input;
+#     Blake3Hash hash;
+#     Blake3Hash prev_hash;
+#     uint32_t difficulty;
+#     uint64_t timestamp;
+#     uint32_t id;
+#     /*** 
+#         Additional fields: 
+#         - hash digest of all block transactions
+#         - public key of wallet that mined the block
+#     ***/
+# };
+
+# struct Transaction {
+#     Ed25519Key src;
+#     Ed25519Key dest;
+#     Ed25519Signature signature;
+#     uint64_t id;
+#     uint32_t amount;
+#     uint64_t timestamp;
+# };
+
+header:
+  hash: 69
+  prev_hash: 69
+  difficulty: 69
+  timestamp: 69
+  id: 0
+transactions:
+  - src: 1111111111111111111111111111169
+    dest: 1111111111111111111111111111169
+    amount: 51
+  - src: 1111111111111111111111111111169
+    dest: 1111111111111111111111111111169
+    amount: 52
+  - src: 1111111111111111111111111111169
+    dest: 1111111111111111111111111111169
+    amount: 53
