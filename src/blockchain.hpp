@@ -1,4 +1,5 @@
 #include <vector>
+#include <mutex>
 
 #include "keys.hpp"
 #include "server.hpp"
@@ -11,6 +12,7 @@ class BlockChain {
         Server server;
         std::string txpool_address;
         std::vector<Block> blocks;
+        std::mutex blockmutex;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         void sync_bal(Block b);
         void add_block(void* receiver, MessageBuffer data);
