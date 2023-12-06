@@ -21,6 +21,7 @@ extern "C" {
 #include "consensus.hpp"
 #include "pom.hpp"
 #include "pow.hpp"
+#include "utils.hpp"
 #include "monitor.hpp"
 
 int cl_wallet_help() {
@@ -30,6 +31,7 @@ int cl_wallet_help() {
     printf("./dsc wallet key\n");
     printf("./dsc wallet balance\n");
     printf("./dsc wallet send <amount> <address>\n");
+    printf("./dsc wallet send multi <amount> <address> <count>\n");
     printf("./dsc wallet transaction <ID>\n");
 
     return 0;
@@ -90,6 +92,40 @@ int cl_wallet_send(std::string arg_amount, std::string arg_address) {
     return 0;
 }
 
+int cl_wallet_send_multi(std::string arg_amount, std::string arg_address, std::string arg_count) {
+    Transaction tx;
+    Wallet wallet;
+    Ed25519Key dest;
+    std::string address;
+    int amount, status, count;
+    
+    dest = base58_decode_key(arg_address);
+    amount = std::stoi(arg_amount);
+    count = std::stoi(arg_count);
+
+    load_wallet(wallet);
+    address = get_tx_pool_address();
+    uint32_t id = get_tx_id();
+
+    printf("Submitting %d transactions...\n", count);
+    uint64_t start = get_timestamp();
+
+    for(int i = 0; i < count; i++) {
+        tx = create_transaction(wallet, dest, amount, id + i);
+        status = submit_transaction(tx, address);
+
+        if(status < 0) {
+            printf("Transaction %d failed to post.\n", i);
+            return -1;
+        } 
+    }
+
+    printf("Transactions submitted successfully! [%lu ms]\n", get_timestamp() - start);
+    set_tx_id(id + count);
+
+    return 0;
+}
+
 int cl_wallet_transaction(std::string arg_id) {
     std::string address = get_tx_pool_address();
     uint64_t id = std::stoi(arg_id);
@@ -116,6 +152,9 @@ int run_wallet(std::vector<std::string> args) {
 
     if (args[0] == "balance")
         return cl_wallet_balance();
+
+    if (args[0] == "send" && args.size() >= 5 && args[1] == "multi")
+        return cl_wallet_send_multi(args[2], args[3], args[4]);
 
     if (args[0] == "send" && args.size() >= 3)
         return cl_wallet_send(args[1], args[2]);

@@ -15,7 +15,6 @@
 #include "consensus.hpp"
 #include "defs.hpp"
 #include "wallet.hpp"
-#include "config.hpp"
 #include "utils.hpp"
 #include "pom.hpp"
 
@@ -141,41 +140,3 @@ bool ProofOfMemory::verify_solution(HashInput input, Blake3Hash curr_hash, Blake
 
     return check_prefix(result, target, difficulty);
 }
-
-// int main(void) {
-//     UUID fingerprint;
-//     uint32_t memory;
-//     ProofOfMemory* pom;
-//     Wallet wallet;
-//     blake3_hasher hasher;
-
-//     uuid_generate(fingerprint.data());
-//     set_validator_fingerprint(fingerprint);
-//     memory = 10000 * 32;
-
-//     pom = new ProofOfMemory(wallet, fingerprint);
-//     pom->gen_hashes(memory);
-
-//     Blake3Hash prev_hash, target;
-
-//     for(int i = 0; i < 100; i++) {
-
-//         prev_hash.fill(i);
-
-//         auto solution = pom->solve_hash(prev_hash, 16);
-
-//         blake3_hasher_init(&hasher);
-//         blake3_hasher_update(&hasher, prev_hash.data(), prev_hash.size());
-//         blake3_hasher_finalize(&hasher, target.data(), target.size());
-
-//         printf("\ttarget: ");
-//         for(auto byte : target)
-//             printf("%02x", byte);
-//         printf("\n");
-
-//         printf("\tsolution: ");
-//         for(auto byte : solution.second)
-//             printf("%02x", byte);
-//         printf("\n");
-//     }
-// }

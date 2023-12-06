@@ -19,7 +19,6 @@
 #include "validator.hpp"
 #include "wallet.hpp"
 #include "utils.hpp"
-#include "config.hpp"
 
 Validator::Validator(std::string _blockchain, std::string _metronome, 
     std::string _tx_pool, IConsensusModel* _consensus, Wallet _wallet) 
@@ -64,7 +63,7 @@ void Validator::start(std::string address) {
 
         auto block = create_block(curr_block, input, solution, difficulty);
 
-        printf("Submitting block [%d].\n", block.header.id);
+        printf("Submitting block. [id=%d] [num_txs=%lu]\n", block.header.id, block.transactions.size());
         if(!submit_block(block))
             printf("Error submitting block [%d]!\n", block.header.id);
     }
@@ -139,8 +138,6 @@ bool Validator::submit_block(Block block) {
 
     send_message(requester, block, SUBMIT_BLOCK);
     auto response = recv_message<NullMessage>(requester);
-
-    printf("response header%d\n", response.header.type);
 
     return response.header.type == STATUS_GOOD;
 }

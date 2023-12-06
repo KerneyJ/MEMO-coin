@@ -52,6 +52,15 @@ uint64_t get_tx_id() {
     return nonce;
 }
 
+void set_tx_id(uint64_t nonce) {
+    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+
+    config["wallet"]["nonce"] = nonce;
+
+    std::ofstream fout(CONFIG_FILE);
+    fout << config;
+}
+
 // Trancastion pool config
 
 std::string get_tx_pool_address() {

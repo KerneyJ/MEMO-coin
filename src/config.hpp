@@ -12,6 +12,7 @@
 bool load_wallet(Wallet& wallet);
 bool store_wallet(Wallet& wallet);
 uint64_t get_tx_id();
+void set_tx_id(uint64_t id);
 
 // Trancastion pool config
 

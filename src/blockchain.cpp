@@ -53,7 +53,7 @@ void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
     this->blocks.push_back(block);
     sync_bal(block);
     send_message(client, STATUS_GOOD);
-    printf("Block added, %lu blocks\n", this->blocks.size());
+    printf("Block added. [id=%d] [num_txs=%lu]\n", block.header.id, block.transactions.size());
 
     zmq::context_t& context = server.get_context();
     zmq::socket_t requester(context, ZMQ_REQ);
