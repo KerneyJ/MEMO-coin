@@ -35,6 +35,7 @@ class Metronome {
         BlockHeader request_last_block();
         void handle_block(zmq::socket_t &client, MessageBuffer data);
         void get_difficulty(zmq::socket_t &client, MessageBuffer data);
+        void query_validators(zmq::socket_t &client, MessageBuffer data);
         void register_validator(zmq::socket_t &client, MessageBuffer data);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
     public:
