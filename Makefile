@@ -28,13 +28,13 @@ CPP_OBJS=$(CPP_SRCS:.cpp=.o)
 TARGETS=dsc.cpp
 
 ifeq ($(DEBUG),true)
-    CFLAGS := -D DEBUG
+    CFLAGS := $(CFLAGS) -D DEBUG
     CPP_FLAGS := $(CPP_FLAGS) -D DEBUG
 endif
 
 ifeq ($(DEBUG),true)
-    CFLAGS := -D BLOCKCHAIN
-    CPP_FLAGS := -D BLOCKCHAIN
+    CFLAGS := $(CFLAGS) -D BLOCKCHAIN
+    CPP_FLAGS := $(CPP_FLAGS) -D BLOCKCHAIN
 endif
 
 all: dir $(BLAKE_SRCS) $(BASE58_OBJS) $(TARGETS)
