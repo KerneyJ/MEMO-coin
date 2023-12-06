@@ -14,11 +14,5 @@ sleep 5
 
 printf "starting benchmark\n"
 date
-for i in {1..128000}
-do
-    ../bin/dsc wallet send 1 1
-#    if [ $(($i % 1000)) -eq 0 ]; then
-#        printf "submitted transaction %d\n" $i
-#    fi
-done
+../bin/dsc wallet send multi 1 1 128000
 date
