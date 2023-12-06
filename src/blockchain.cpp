@@ -25,7 +25,9 @@ void BlockChain::start(std::string address) {
 void BlockChain::sync_bal(Block b){
     for(size_t nt = 0; nt < b.transactions.size(); nt++){
         Transaction t = b.transactions[nt];
+#ifdef DEBUG
         display_transaction(t);
+#endif
         auto srcbal = this->ledger.find(t.src);
         auto dstbal = this->ledger.find(t.dest);
         if(dstbal != this->ledger.end()){

@@ -32,7 +32,7 @@ ifeq ($(DEBUG),true)
     CPP_FLAGS := $(CPP_FLAGS) -D DEBUG
 endif
 
-ifeq ($(DEBUG),true)
+ifeq ($(BLOCKCHAIN),true)
     CFLAGS := $(CFLAGS) -D BLOCKCHAIN
     CPP_FLAGS := $(CPP_FLAGS) -D BLOCKCHAIN
 endif
