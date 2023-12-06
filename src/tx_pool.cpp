@@ -28,19 +28,22 @@ void TxPool::start(std::string address) {
 
 void TxPool::add_transaction(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
-    
-    auto tx = deserialize_payload<Transaction>(data);
 
+    auto tx = deserialize_payload<Transaction>(data);
+#ifdef DEBUG
     printf("Received transaction.\n");
     display_transaction(tx);
-
+#endif
     if(!verify_transaction_signature(tx)) {
+#ifdef DEBUG
         printf("Signature invalid. Rejecting transaction!\n");
+#endif
         send_message(client, STATUS_BAD);
         return;
     }
-
+#ifdef DEBUG
     printf("Signature valid, adding transaction...\n");
+#endif
     submitted_queue.push_back(tx);
     submitted_set.insert(tx);
 

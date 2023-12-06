@@ -32,6 +32,11 @@ ifeq ($(DEBUG),true)
     CPP_FLAGS := $(CPP_FLAGS) -D DEBUG
 endif
 
+ifeq ($(DEBUG),true)
+    CFLAGS := -D BLOCKCHAIN
+    CPP_FLAGS := -D BLOCKCHAIN
+endif
+
 all: dir $(BLAKE_SRCS) $(BASE58_OBJS) $(TARGETS)
 
 $(BLAKE_SRCS):

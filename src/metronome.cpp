@@ -30,8 +30,9 @@ void Metronome::start(std::string address) {
     std::chrono::system_clock::time_point block_deadline;
 
     while(true) {
+#ifdef DEBUG
         printf("Waiting for block %d.\n", last_block.id + 1);
-
+#endif
         {
             std::unique_lock<std::mutex> lock(block_mutex);
             block_deadline = std::chrono::system_clock::time_point(
@@ -47,7 +48,9 @@ void Metronome::start(std::string address) {
         update_difficulty(status == std::cv_status::timeout);
 
         if(status == std::cv_status::timeout) {
+#ifdef DEBUG
             printf("Submitting empty block.\n");
+#endif
             submit_empty_block();
         }
     }
@@ -73,7 +76,9 @@ void Metronome::submit_empty_block() {
         empty_block.header.hash[i] = rand() % 255;
 
     if(submit_block(empty_block) < 0) {
+#ifdef DEBUG
         printf("Empty block rejected from blockchain.\n");
+#endif
         return;
     }
 
@@ -88,19 +93,27 @@ void Metronome::update_difficulty(bool timed_out) {
 
     if(timed_out) {
         if(difficulty <= MIN_DIFFICULTY) {
+#ifdef DEBUG
             printf("Block not solved in time. Difficulty already at minimum of %d.\n", difficulty);
+#endif
             return;
         }
 
         std::unique_lock<std::mutex> diff_lock(diff_mutex);
         difficulty--;
+#ifdef DEBUG
         printf("Block not solved in time. Difficulty decreased to %d.\n", difficulty);
+#endif
     } else if(solved_time < BLOCK_TIME / 2 * 1000000) {
         std::unique_lock<std::mutex> diff_lock(diff_mutex);
         difficulty++;
+#ifdef DEBUG
         printf("Block solved in %.3fs. Difficulty increased to %d.\n", float(solved_time) / 1000000, difficulty);
+#endif
     } else {
+#ifdef DEBUG
         printf("Block solved in %.3fs. Difficulty remains at %d.\n", float(solved_time) / 1000000, difficulty);
+#endif
     }
 }
 
@@ -161,7 +174,9 @@ void Metronome::get_difficulty(zmq::socket_t &client, MessageBuffer data) {
 //TODO: keep a list of active validator addresses. Validator should send its wallet public key.
 void Metronome::register_validator(zmq::socket_t &client, MessageBuffer data) {
     this->active_validators += 1;
+#ifdef DEBUG
     printf("Registered new validator [%d]\n", this->active_validators);
+#endif
     send_message(client, STATUS_GOOD);
 }
 

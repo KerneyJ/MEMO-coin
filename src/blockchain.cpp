@@ -53,8 +53,9 @@ void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
     this->blocks.push_back(block);
     sync_bal(block);
     send_message(client, STATUS_GOOD);
+#ifdef BLOCKCHAIN
     printf("Block added. [id=%d] [num_txs=%lu]\n", block.header.id, block.transactions.size());
-
+#endif
     zmq::context_t& context = server.get_context();
     zmq::socket_t requester(context, ZMQ_REQ);
 
@@ -94,13 +95,17 @@ void BlockChain::tx_status(zmq::socket_t &client, MessageBuffer data){
 void BlockChain::load_genesis(){
     Block genesis = get_genesis_block();
     this->blocks.push_back(genesis);
+#ifdef DEBUG
     printf("Genesis block loaded\n");
+#endif
 }
 
 //Replies to sender with the number of unique addresses on the blockchain,
 //which is equal to the number of entries in blockchain.ledger.
 void BlockChain::get_num_addr(zmq::socket_t &client, MessageBuffer data) {
+#ifdef DEBUG
     printf("getting number of blockchain addresses in blockchain.cpp");
+#endif
     int num_addresses = this->ledger.size();
     send_message(client, num_addresses, STATUS_GOOD);
     return;
@@ -111,15 +116,21 @@ void BlockChain::get_total_coins(zmq::socket_t &client, MessageBuffer data) {
     // Sum variable to accumulate the values
     uint32_t sum = 0;
     // Iterate over the unordered_map
+#ifdef DEBUG
     printf("\n");
+#endif
     for (const auto& entry : this->ledger) {
         // entry.first is the key (Ed25519Key)
         // entry.second is the value (uint32_t)
         sum += entry.second;
+#ifdef DEBUG
         printf("entry: %d, ", entry.second);
+#endif
     }
+#ifdef DEBUG
     printf("\nSUM = %d\n", sum);
     fflush(stdout);
+#endif
     // Now 'sum' contains the sum of all uint32_t values in the unordered_map
     int total_coins = sum;
     send_message(client, total_coins, STATUS_GOOD);

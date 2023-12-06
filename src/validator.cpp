@@ -62,8 +62,9 @@ void Validator::start(std::string address) {
             continue;
 
         auto block = create_block(curr_block, input, solution, difficulty);
-
+#ifdef DEBUG
         printf("Submitting block. [id=%d] [num_txs=%lu]\n", block.header.id, block.transactions.size());
+#endif
         if(!submit_block(block))
             printf("Error submitting block [%d]!\n", block.header.id);
     }
