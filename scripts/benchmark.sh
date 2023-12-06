@@ -3,10 +3,11 @@
 ../bin/dsc blockchain &
 ../bin/dsc pool > /dev/null &
 
-for i in {1..12}
-do
-    ../bin/dsc validator > /dev/null &
-done
+# for i in {1..12}
+# do
+#     ../bin/dsc validator > /dev/null &
+# done
+../bin/dsc validator > /dev/null &
 
 ../bin/dsc metronome > /dev/null &
 
