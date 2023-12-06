@@ -98,15 +98,15 @@ uint32_t get_validator_memory() {
 
     str_val = config["validator"]["memory"].as<std::string>();
 
-    if((num_end = str_val.find("Kb")) != std::string::npos) {
+    if((num_end = str_val.find("KB")) != std::string::npos) {
         return std::stoi(str_val.substr(0, num_end)) * 1000;
     }
 
-    if((num_end = str_val.find("Mb")) != std::string::npos) {
+    if((num_end = str_val.find("MB")) != std::string::npos) {
         return std::stoi(str_val.substr(0, num_end)) * 1000000;
     }
 
-    if((num_end = str_val.find("Gb")) != std::string::npos) {
+    if((num_end = str_val.find("GB")) != std::string::npos) {
         return std::stoi(str_val.substr(0, num_end)) * 1000000000;
     }
 

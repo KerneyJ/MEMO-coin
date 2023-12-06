@@ -7,7 +7,7 @@ tx_pool:
 validator:
   threads: 2
   address: tcp://127.0.0.1:10002
-  memory: 50Mb
+  memory: 50MB
   consensus: pow
   fingerprint: 5wGVrRHSL2mXC5pqjVpJMo
 metronome:

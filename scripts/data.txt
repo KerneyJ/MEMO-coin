@@ -1,3 +1,5 @@
 Wed Nov 29 01:41:50 UTC 2023
 Wed Nov 29 02:16:09 UTC 2023
 2069 seconds 61tps
+
+1406 tps on ian's laptop
