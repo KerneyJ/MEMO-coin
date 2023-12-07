@@ -6,7 +6,7 @@
 
 #pragma once
 
-#define BLOCK_SIZE 6500
+#define BLOCK_SIZE 8191
 #define BLOCK_TIME 6
 #define MIN_DIFFICULTY 20
 #define MINER_REWARD 50

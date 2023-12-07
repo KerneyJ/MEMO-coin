@@ -4,6 +4,7 @@
 #include <cassert>
 #include <zmq.hpp>
 
+#include "utils.hpp"
 #include "blockchain.hpp"
 #include "transaction.hpp"
 #include "defs.hpp"
@@ -25,7 +26,9 @@ void BlockChain::start(std::string address) {
 void BlockChain::sync_bal(Block b){
     for(size_t nt = 0; nt < b.transactions.size(); nt++){
         Transaction t = b.transactions[nt];
+#ifdef DEBUG
         display_transaction(t);
+#endif
         auto srcbal = this->ledger.find(t.src);
         auto dstbal = this->ledger.find(t.dest);
         if(dstbal != this->ledger.end()){
@@ -54,7 +57,7 @@ void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
     sync_bal(block);
     send_message(client, STATUS_GOOD);
 #ifdef BLOCKCHAIN
-    printf("Block added. [id=%d] [num_txs=%lu]\n", block.header.id, block.transactions.size());
+    printf("Block added. [timestamp=%lu] [id=%d] [num_txs=%lu]\n", get_timestamp() / 1000000, block.header.id, block.transactions.size());
 #endif
     zmq::context_t& context = server.get_context();
     zmq::socket_t requester(context, ZMQ_REQ);

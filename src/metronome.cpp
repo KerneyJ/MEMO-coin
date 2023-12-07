@@ -180,6 +180,13 @@ void Metronome::register_validator(zmq::socket_t &client, MessageBuffer data) {
     send_message(client, STATUS_GOOD);
 }
 
+void Metronome::query_validators(zmq::socket_t &client, MessageBuffer data) {
+#ifdef DEBUG
+    printf("Registered new validator [%d]\n", this->active_validators);
+#endif
+    send_message(client, active_validators, STATUS_GOOD);
+}
+
 void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
     switch (request.header.type) {
         case SUBMIT_BLOCK:
@@ -188,8 +195,8 @@ void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> re
             return get_difficulty(client, request.data);
         case REGISTER_VALIDATOR:
             return register_validator(client, request.data);
-        // case QUERY_NUM_VALIDATORS:
-        //     return register_validator(client, request.data);
+        case QUERY_NUM_VALIDATORS:
+            return query_validators(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

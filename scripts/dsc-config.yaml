@@ -1,13 +1,13 @@
 wallet:
   public_key: AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby
-  nonce: 189755
+  nonce: 1
 tx_pool:
   threads: 2
   address: tcp://127.0.0.1:10001
 validator:
   threads: 2
   address: tcp://127.0.0.1:10002
-  memory: 50Mb
+  memory: 50MB
   consensus: pow
   fingerprint: 5wGVrRHSL2mXC5pqjVpJMo
 metronome:
