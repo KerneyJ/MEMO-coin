@@ -34,10 +34,11 @@ enum MessageType {
 };
 
 struct MessageHeader {
-    MessageType type;
+    enum MessageType type;
     size_t size;
 };
 
+/* Don't use this. This is to ensure any type is serializable. */
 template<typename Type>
 struct MessagePayload {
     Type data;

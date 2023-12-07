@@ -28,7 +28,7 @@ void gen_keys_ed25519(Ed25519Key &pub_key, Ed25519Key &priv_key) {
     EVP_PKEY_CTX_free(pctx);
 
     if(pkey==NULL){
-        fprintf(stderr,"error: rsa gen\n");
+        fprintf(stderr,"error: ed25519 gen\n");
         ERR_print_errors_fp(stderr);
         return;
     }
@@ -82,7 +82,7 @@ Ed25519Key base58_decode_key(std::string str) {
     size_t len = key.size();
 
     if(!b58tobin(key.data(), &len, str.c_str())) 
-        throw std::runtime_error("Failed to encode key.");
+        throw std::runtime_error("Failed to decode key.");
 
     return key;
 }
@@ -102,7 +102,7 @@ UUID base58_decode_uuid(std::string str) {
     size_t len = uuid.size();
 
     if(!b58tobin(uuid.data(), &len, str.c_str())) 
-        throw std::runtime_error("Failed to encode uuid.");
+        throw std::runtime_error("Failed to decode uuid.");
 
     return uuid;
 }
