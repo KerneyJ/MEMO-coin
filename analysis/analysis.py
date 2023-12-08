@@ -15,11 +15,14 @@ figsize=(16,6.4)
 def blockchain_throughput():
     f, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
     clients = [1, 2, 4, 8]
-    thrghpt = [0, 0, 1219.047619047619, 0]
-    df = pd.DataFrame({"Clients": clients, "Throughput(transactions/second)": thrghpt})
-    sns.lineplot(data=df, x="Clients", y="Throughput(transactions/second)", ax=ax)
+    thrghpt01 = [435.3741496598639, 735.6321839080459, 1219.047619047619, 1306.1224489795918]
+    thrghpt12 = [428.09364548494983, 820.5128205128206, 1132.7433628318583, 805.0314465408806]
+    df = pd.DataFrame({"Clients": clients, "Throughput(transactions/second) 1 Validator": thrghpt01, "Throughput(transactions/second) 12 Validators": thrghpt12})
+    sns.lineplot(data=df, x="Clients", y="Throughput(transactions/second) 1 Validator", ax=ax)
+    sns.lineplot(data=df, x="Clients", y="Throughput(transactions/second) 12 Validators", ax=ax)
+    ax.set_title("Throughput vs Clients with 1 validator")
+    ax.set_ylabel("Throughput(tps)", fontsize=16)
     f.savefig("throughput.png");
-
 
     # ax.set_xlabel("Nodes", fontsize=16)
     # ax.set_ylabel("Average Time(s)", fontsize=16)
