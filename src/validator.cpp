@@ -57,7 +57,7 @@ void Validator::start(std::string address) {
 
         // Solve consensus problem
         auto [input, solution] = consensus->solve_hash(curr_block.hash, difficulty, curr_block.timestamp + BLOCK_TIME * 1000000);
-        
+
         if(is_null_hash(solution))
             continue;
 

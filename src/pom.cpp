@@ -107,7 +107,7 @@ std::pair<HashInput, Blake3Hash> ProofOfMemory::solve_hash(Blake3Hash prev_hash,
 
     uint64_t start = get_timestamp();
     int idx = prefix_binary_search(hashes, target, difficulty);
-    
+
     if(idx == -1) {
         printf("No solution found in %lu hashes.\n", hashes.size());
 
