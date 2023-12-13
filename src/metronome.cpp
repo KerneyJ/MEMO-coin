@@ -21,10 +21,11 @@ Metronome::Metronome(std::string _blockchain) {
 }
 
 void Metronome::start(std::string address) {
-	auto fp = std::bind(&Metronome::request_handler, this, std::placeholders::_1, std::placeholders::_2);
-	
-	if(server.start(address, fp, false) < 0)
-		throw std::runtime_error("Server could not bind.");
+    // TODO have the metronome deterime who gets to pull transaction from the transaction pool
+    auto fp = std::bind(&Metronome::request_handler, this, std::placeholders::_1, std::placeholders::_2);
+
+    if(server.start(address, fp, false) < 0)
+        throw std::runtime_error("Server could not bind.");
 
     std::cv_status status;
     std::chrono::system_clock::time_point block_deadline;
@@ -41,7 +42,7 @@ void Metronome::start(std::string address) {
 
             while(sleeping && status == std::cv_status::no_timeout)
                 status = block_timer.wait_until(lock, block_deadline);
-            
+
             sleeping = true;
         }
 
