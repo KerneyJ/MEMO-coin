@@ -2,3 +2,4 @@ bin/
 obj/
 src/a.out
 scripts/wallet*
+analysis/analysisenv/
