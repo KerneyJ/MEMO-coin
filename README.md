@@ -97,7 +97,8 @@ make install
 * libyaml-cpp-dev
 * uuid-dev
 
-# install alpaca: https://github.com/p-ranav/alpaca/tree/master#building-installing-and-testing
+# install alpaca:
+* https://github.com/p-ranav/alpaca/tree/master#building-installing-and-testing
 
 
 
