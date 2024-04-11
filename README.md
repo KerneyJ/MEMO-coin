@@ -1,24 +1,40 @@
 # How to setup
-
+Download, build, and install libzmq
 ```
-git clone git://github.com/zeromq/libzmq.git
+git clone git@github.com:zeromq/libzmq.git
 cd libzmq
 ./autogen.sh 
 ./configure && make
 sudo make install
 sudo ldconfig
 cd ..
+```
 
+Download, build, and install C++ libzmq API and headers
+```
+git clone git@github.com:zeromq/cppzmq.git
+cd cppzmq
+mkdir build
+cd build
+cmake ..
+sudo make install
+```
+
+Download, build, and install Alpaca
+```
 git clone --recurse-submodules https://github.com/p-ranav/alpaca
 cd alpaca
 cmake -DALPACA_BUILD_TESTS=on \
       -DALPACA_BUILD_BENCHMARKS=on \
       -DALPACA_BUILD_SAMPLES=on \
-      -DCMAKE_BUILD_TYPE=Release
+      -DCMAKE_BUILD_TYPE=Releasei
 make
 ./test/tests
 make install
+```
 
+Download, build, and install YAML C++
+```
 git clone git@github.com:jbeder/yaml-cpp.git
 mkdir build
 cd build
