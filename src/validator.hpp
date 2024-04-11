@@ -14,7 +14,7 @@
 #include "messages.hpp"
 
 #pragma once
-
+// TODO make function to verify blocks
 class Validator {
     private:
         zmq::context_t zmq_ctx;

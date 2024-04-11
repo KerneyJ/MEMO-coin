@@ -8,6 +8,8 @@
 #pragma once
 
 class BlockChain {
+    // TODO: checkpoint the ledger to disk and in general make persistent
+    // TODO: serialize blocks and write to disk(i.e. make persistent) maybe use sparse file? talk to lan
     private:
         Server server;
         std::string txpool_address;

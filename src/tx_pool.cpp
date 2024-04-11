@@ -34,7 +34,7 @@ void TxPool::add_transaction(zmq::socket_t &client, MessageBuffer data) {
     printf("Received transaction.\n");
     display_transaction(tx);
 #endif
-    if(!verify_transaction_signature(tx)) {
+    if(!verify_transaction_signature(tx)) { // TODO remove? make the pool light
 #ifdef DEBUG
         printf("Signature invalid. Rejecting transaction!\n");
 #endif
