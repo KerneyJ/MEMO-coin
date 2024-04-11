@@ -30,6 +30,7 @@ make install
 * Make Blockchain Persistent
 * Make Blockchain Distriuted(multiple blockchain nodes to exist, simple flooding mechanism)
 * Make Transaction Pool Distributed
+* Make Metronome Distributed
 
 ## External Utils
 * openssl (key generation)
