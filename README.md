@@ -31,6 +31,7 @@ make install
 * Make Blockchain Distriuted(multiple blockchain nodes to exist, simple flooding mechanism)
 * Make Transaction Pool Distributed
 * Make Metronome Distributed
+* Try not to add complexity to the wallet or the validator(push any more complexity to the blockchain, transaction pool, or metronome)
 
 ## External Utils
 * openssl (key generation)
