@@ -29,6 +29,7 @@ make install
 # Stuff To Do
 * Make Blockchain Persistent
 * Make Blockchain Distriuted(multiple blockchain nodes to exist, simple flooding mechanism)
+  * modify config file to point new blockchain nodes to existing blockchain nodes
 * Make Transaction Pool Distributed
 * Make Metronome Distributed
 * Try not to add complexity to the wallet or the validator(push any more complexity to the blockchain, transaction pool, or metronome)
