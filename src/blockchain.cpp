@@ -70,7 +70,10 @@ void BlockChain::write_block(Block b){
         std::map<std::string, std::string> tx;
         tx["src"] = base58_encode_key(iter.src);
         tx["dest"] = base58_encode_key(iter.dest);
+        tx["signature"] = base58_encode_sig(iter.signature);
+        tx["id"] = std::to_string(iter.id);
         tx["amount"] = std::to_string(iter.amount);
+        tx["timestamp"] = std::to_string(iter.timestamp);
         transactions.push_back(tx);
     }
     this->stored_chain[block_name]["transactions"] = transactions;
