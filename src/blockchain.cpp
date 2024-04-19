@@ -67,11 +67,6 @@ void BlockChain::write_block(Block b){
     this->stored_chain[block_name]["header"]["id"] = b.header.id;
     std::vector<std::map<std::string, std::string>> transactions;
     for(auto iter : b.transactions){
-        /*
-         * this->stored_chain[block_name]["transactions"]["src"] = base58_encode_key(iter.src);
-         * this->stored_chain[block_name]["transactions"]["dest"] = base58_encode_key(iter.dest);
-         * this->stored_chain[block_name]["transactions"]["amount"] = iter.amount;
-         */
         std::map<std::string, std::string> tx;
         tx["src"] = base58_encode_key(iter.src);
         tx["dest"] = base58_encode_key(iter.dest);
