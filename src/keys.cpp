@@ -97,16 +97,15 @@ std::string base58_encode_sig(Ed25519Signature sig) {
     return std::string(encoded);
 }
 
-Ed25519Key base58_decode_sig(std::string str) {
+Ed25519Signature base58_decode_sig(std::string str) {
     Ed25519Signature sig;
     size_t len = sig.size();
 
-    if(!b58tobin(sig.data(), &len, str.c_str())) 
+    if(!b58tobin(sig.data(), &len, str.c_str()))
         throw std::runtime_error("Failed to decode signature.");
 
     return sig;
 }
-
 
 std::string base58_encode_uuid(UUID uuid) {
     size_t len = 128;
