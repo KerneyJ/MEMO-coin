@@ -4,6 +4,8 @@
 #include "keys.hpp"
 #include "server.hpp"
 #include "block.hpp"
+#include <yaml-cpp/node/node.h>
+#include <yaml-cpp/yaml.h>
 
 #pragma once
 
@@ -13,9 +15,12 @@ class BlockChain {
     private:
         Server server;
         std::string txpool_address;
+        std::string file_name;
         std::vector<Block> blocks;
         std::mutex blockmutex;
+        std::mutex writemutex;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
+        YAML::Node stored_chain;
         void load_genesis();
         void sync_bal(Block b);
         void add_block(zmq::socket_t &client, MessageBuffer data);
@@ -25,7 +30,16 @@ class BlockChain {
         void get_num_addr(zmq::socket_t &client, MessageBuffer data);
         void get_total_coins(zmq::socket_t &client, MessageBuffer data);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
+        /* TODO Maybe store blocks as sparse files
+         * since they should all be of a maximum size
+         * this would allow us to look up blocks in constant time
+         * because each block is at a specific offset in the file
+         * sparse files are also more compact
+         */
+        void load_file(std::string file_name);
+        void write_block(Block b);
     public:
         BlockChain(std::string txpaddr);
+        BlockChain(std::string txpaddr, std::string file_name);
         void start(std::string address);
 };

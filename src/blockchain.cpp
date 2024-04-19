@@ -1,18 +1,25 @@
 #include <stdexcept>
 #include <vector>
 #include <mutex>
-#include <cassert>
 #include <zmq.hpp>
 
 #include "utils.hpp"
 #include "blockchain.hpp"
 #include "transaction.hpp"
 #include "defs.hpp"
+#include "keys.hpp"
 #include "messages.hpp"
 #include "config.hpp"
 
 BlockChain::BlockChain(std::string txpaddr) {
     this->txpool_address = txpaddr;
+    this->file_name = "blockchain.yaml";
+}
+
+BlockChain::BlockChain(std::string txpaddr, std::string file_name) {
+    this->txpool_address = txpaddr;
+    this->file_name = file_name;
+    this->stored_chain = YAML::LoadFile(file_name);
 }
 
 void BlockChain::start(std::string address) {
@@ -48,6 +55,34 @@ void BlockChain::sync_bal(Block b){
     }
 }
 
+void BlockChain::write_block(Block b){
+    std::lock_guard<std::mutex> lock(this->writemutex);
+    std::string block_name = "Block" + std::to_string(b.header.id);
+
+    // Populate node
+    this->stored_chain[block_name]["header"]["hash"] = base58_encode_key(b.header.hash);
+    this->stored_chain[block_name]["header"]["prev_hash"] = base58_encode_key(b.header.hash);
+    this->stored_chain[block_name]["header"]["difficulty"] = b.header.difficulty;
+    this->stored_chain[block_name]["header"]["timestamp"] = b.header.timestamp;
+    this->stored_chain[block_name]["header"]["id"] = b.header.id;
+    std::vector<std::map<std::string, std::string>> transactions;
+    for(auto iter : b.transactions){
+        /*
+         * this->stored_chain[block_name]["transactions"]["src"] = base58_encode_key(iter.src);
+         * this->stored_chain[block_name]["transactions"]["dest"] = base58_encode_key(iter.dest);
+         * this->stored_chain[block_name]["transactions"]["amount"] = iter.amount;
+         */
+        std::map<std::string, std::string> tx;
+        tx["src"] = base58_encode_key(iter.src);
+        tx["dest"] = base58_encode_key(iter.dest);
+        tx["amount"] = std::to_string(iter.amount);
+        transactions.push_back(tx);
+    }
+    this->stored_chain[block_name]["transactions"] = transactions;
+    std::ofstream fout(this->file_name);
+    fout << this->stored_chain;
+}
+
 void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
     auto block = deserialize_payload<Block>(data);
 
@@ -55,6 +90,7 @@ void BlockChain::add_block(zmq::socket_t &client, MessageBuffer data) {
     const std::lock_guard<std::mutex> lock(blockmutex);
     this->blocks.push_back(block);
     sync_bal(block);
+    write_block(block);
     send_message(client, STATUS_GOOD);
 #ifdef BLOCKCHAIN
     printf("Block added. [timestamp=%lu] [id=%d] [num_txs=%lu]\n", get_timestamp() / 1000000, block.header.id, block.transactions.size());
