@@ -227,8 +227,17 @@ int run_blockchain(std::vector<std::string> args) {
     printf("Starting blockchain.\n");
     std::string address = get_blockchain_address();
     std::string txpaddr = get_tx_pool_address();
-    BlockChain blockchain = BlockChain(txpaddr);
-    blockchain.start(address);
+    if(args.size() ==  1) {
+        BlockChain blockchain = BlockChain(txpaddr, args[0]);
+        blockchain.start(address);
+    }
+    else if(args.size() == 0) {
+        BlockChain blockchain = BlockChain(txpaddr);
+        blockchain.start(address);
+    }
+    else{
+        throw std::runtime_error("Invalid blockchain config");
+    }
     return 0;
 }
 

@@ -5,6 +5,7 @@
 
 #include "utils.hpp"
 #include "blockchain.hpp"
+#include "consensus.hpp"
 #include "transaction.hpp"
 #include "defs.hpp"
 #include "keys.hpp"
@@ -13,17 +14,58 @@
 
 BlockChain::BlockChain(std::string txpaddr) {
     this->txpool_address = txpaddr;
-    this->file_name = "blockchain.yaml";
+    this->file_name = "";
 }
 
 BlockChain::BlockChain(std::string txpaddr, std::string file_name) {
     this->txpool_address = txpaddr;
     this->file_name = file_name;
     this->stored_chain = YAML::LoadFile(file_name);
+
+    /* Parse each block in the chain
+    for(YAML::const_iterator it=this->stored_chain.begin(); it != this->stored_chain.end(); ++it){
+        std::string block_name = it->first.as<std::string>();
+        Block b;
+        printf("hash: %s\n", this->stored_chain[block_name]["header"]["hash"].as<std::string>().c_str());
+    }
+    */
 }
 
 void BlockChain::start(std::string address) {
     this->load_genesis();
+
+    // Check if we need to read from a file
+    if(!this->file_name.empty()){
+        for(YAML::const_iterator it = this->stored_chain.begin(); it != this->stored_chain.end(); ++it){
+            std::string block_name = it->first.as<std::string>();
+            if(block_name.find("Block") == std::string::npos)
+                break; // this is if we can't find Block in the string
+            printf("Parsing block %s\n", block_name.c_str());
+            Block b;
+            b.header.hash = base58_decode_key(this->stored_chain[block_name]["header"]["hash"].as<std::string>());
+            b.header.prev_hash = base58_decode_key(this->stored_chain[block_name]["header"]["prev_hash"].as<std::string>());
+            b.header.difficulty = this->stored_chain[block_name]["header"]["difficulty"].as<uint32_t>();
+            b.header.timestamp = this->stored_chain[block_name]["header"]["timestamp"].as<uint64_t>();
+            b.header.input.fingerprint = base58_decode_uuid(this->stored_chain[block_name]["header"]["input"]["fingerprint"].as<std::string>());
+            b.header.input.public_key = base58_decode_key(this->stored_chain[block_name]["header"]["input"]["publickey"].as<std::string>());
+            b.header.input.nonce = this->stored_chain[block_name]["header"]["input"]["nonce"].as<uint64_t>();
+            for(auto iter : this->stored_chain["transactions"]) {
+                Transaction tx;
+                tx.src = base58_decode_key(iter["src"].as<std::string>());
+                tx.dest = base58_decode_key(iter["dest"].as<std::string>());
+                tx.amount = iter["amount"].as<uint32_t>();
+                tx.signature = base58_decode_sig(iter["signature"].as<std::string>());
+                tx.timestamp = iter["timestamp"].as<uint64_t>();
+                tx.id = iter["id"].as<uint32_t>();
+                b.transactions.push_back(tx);
+            }
+            this->blocks.push_back(b);
+            sync_bal(b);
+        }
+    }
+    else
+        this->file_name = "blockchain.yaml";
+
     auto fp = std::bind(&BlockChain::request_handler, this, std::placeholders::_1, std::placeholders::_2);
 
     if(server.start(address, fp) < 0)
@@ -60,6 +102,9 @@ void BlockChain::write_block(Block b){
     std::string block_name = "Block" + std::to_string(b.header.id);
 
     // Populate node
+    this->stored_chain[block_name]["header"]["input"]["fingerprint"] = base58_encode_uuid(b.header.input.fingerprint);
+    this->stored_chain[block_name]["header"]["input"]["publickey"] = base58_encode_key(b.header.input.public_key);
+    this->stored_chain[block_name]["header"]["input"]["nonce"] = b.header.input.nonce;
     this->stored_chain[block_name]["header"]["hash"] = base58_encode_key(b.header.hash);
     this->stored_chain[block_name]["header"]["prev_hash"] = base58_encode_key(b.header.hash);
     this->stored_chain[block_name]["header"]["difficulty"] = b.header.difficulty;
@@ -132,6 +177,7 @@ void BlockChain::tx_status(zmq::socket_t &client, MessageBuffer data){
 void BlockChain::load_genesis(){
     Block genesis = get_genesis_block();
     this->blocks.push_back(genesis);
+    sync_bal(genesis); // I'm pretty sure we need to sync bal after genesis
 #ifdef DEBUG
     printf("Genesis block loaded\n");
 #endif
