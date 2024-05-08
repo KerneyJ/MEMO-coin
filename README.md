@@ -42,6 +42,15 @@ cmake ..
 make install
 ```
 
+# How to Run
+```
+# All in seperate shells
+./bin/dsc blockchain [optional: path to stored blockchain]
+./bin/dsc metronome
+./bin/dsc pool
+./bin/dsc validator
+```
+
 # Stuff To Do
 * Make Blockchain Persistent
 * Make Blockchain Distriuted(multiple blockchain nodes to exist, simple flooding mechanism)
