@@ -21,10 +21,11 @@ BlockChain::BlockChain(std::string txpaddr, std::string file_name) {
     this->txpool_address = txpaddr;
     this->file_name = file_name;
     this->stored_chain = YAML::LoadFile(file_name);
+    printf("Loaded file %s\n", file_name.c_str());
 
     /* Parse each block in the chain
     for(YAML::const_iterator it=this->stored_chain.begin(); it != this->stored_chain.end(); ++it){
-        std::string block_name = it->first.as<std::string>();
+        std::string block_name = it->first.as<std::string>();this->stored_chain[block_name]["header"]["hash"].as<std::string>()
         Block b;
         printf("hash: %s\n", this->stored_chain[block_name]["header"]["hash"].as<std::string>().c_str());
     }
@@ -40,7 +41,9 @@ void BlockChain::start(std::string address) {
             std::string block_name = it->first.as<std::string>();
             if(block_name.find("Block") == std::string::npos)
                 break; // this is if we can't find Block in the string
+#ifdef DEBUG
             printf("Parsing block %s\n", block_name.c_str());
+#endif
             Block b;
             b.header.hash = base58_decode_key(this->stored_chain[block_name]["header"]["hash"].as<std::string>());
             b.header.prev_hash = base58_decode_key(this->stored_chain[block_name]["header"]["prev_hash"].as<std::string>());
@@ -49,7 +52,7 @@ void BlockChain::start(std::string address) {
             b.header.input.fingerprint = base58_decode_uuid(this->stored_chain[block_name]["header"]["input"]["fingerprint"].as<std::string>());
             b.header.input.public_key = base58_decode_key(this->stored_chain[block_name]["header"]["input"]["publickey"].as<std::string>());
             b.header.input.nonce = this->stored_chain[block_name]["header"]["input"]["nonce"].as<uint64_t>();
-            for(auto iter : this->stored_chain["transactions"]) {
+            for(auto iter : this->stored_chain[block_name]["transactions"]) {
                 Transaction tx;
                 tx.src = base58_decode_key(iter["src"].as<std::string>());
                 tx.dest = base58_decode_key(iter["dest"].as<std::string>());
@@ -58,6 +61,9 @@ void BlockChain::start(std::string address) {
                 tx.timestamp = iter["timestamp"].as<uint64_t>();
                 tx.id = iter["id"].as<uint32_t>();
                 b.transactions.push_back(tx);
+#ifdef DEBUG
+                printf("src: %s; dest: %s; amt: %d\n", iter["src"].as<std::string>().c_str(), iter["dest"].as<std::string>().c_str(), tx.amount);
+#endif
             }
             this->blocks.push_back(b);
             sync_bal(b);
