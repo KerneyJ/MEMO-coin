@@ -27,85 +27,85 @@ extern "C" {
 int cl_wallet_help() {
     printf("Help menu for Wallet, supported commands:\n");
     printf("./dsc wallet help\n");
-    printf("./dsc wallet create\n");
-    printf("./dsc wallet key\n");
-    printf("./dsc wallet balance\n");
-    printf("./dsc wallet send <amount> <address>\n");
-    printf("./dsc wallet send multi <amount> <address> <count>\n");
-    printf("./dsc wallet transaction <ID>\n");
+    printf("./dsc wallet create <config file> <save key file>\n");
+    printf("./dsc wallet key <config file> <key file>\n");
+    printf("./dsc wallet balance <config file> <key file>\n");
+    printf("./dsc wallet send <config file> <key file> <amount> <address>\n");
+    printf("./dsc wallet send multi <config file> <key file> <amount> <address> <count>\n");
+    printf("./dsc wallet transaction <config file> <key file> <ID> \n");
 
     return 0;
 }
 
-int cl_wallet_create() {
+int cl_wallet_create(std::string config_file, std::string key_file) {
     printf("Creating wallet...\n");
 
     Wallet wallet = create_wallet();
-    store_wallet(wallet);
+    store_wallet(wallet, config_file, key_file);
     display_wallet(wallet);
 
     return 0;
 }
 
-int cl_wallet_key() {
+int cl_wallet_key(std::string config_file, std::string key_file) {
     Wallet wallet;
 
     printf("Loading wallet...\n");
-    load_wallet(wallet);
+    load_wallet(wallet, config_file, key_file);
     display_wallet(wallet);
 
     return 0;
 }
 
-int cl_wallet_balance() {
-    std::string blockchain_node = get_blockchain_address();
-    uint64_t balance = query_balance(blockchain_node);
+int cl_wallet_balance(std::string config_file, std::string key_file) {
+    std::string blockchain_node = get_blockchain_address(config_file);
+    uint64_t balance = query_balance(blockchain_node, config_file, key_file);
     printf("Current balance: %lu\n", balance);
     return 0;
 }
 
-int cl_wallet_send(std::string arg_amount, std::string arg_address) {
+int cl_wallet_send(std::string config_file, std::string key_file, std::string arg_amount, std::string arg_address) {
     Transaction tx;
     Wallet wallet;
     Ed25519Key dest;
     std::string address;
     int amount, status;
-    
+
     dest = base58_decode_key(arg_address);
     amount = std::stoi(arg_amount);
-    load_wallet(wallet);
+    load_wallet(wallet, config_file, key_file);
 
     printf("Creating transaction...\n");
-    tx = create_transaction(wallet, dest, amount, get_tx_id());
+    tx = create_transaction(wallet, dest, amount, get_tx_id(config_file));
     display_transaction(tx);
 
-    address = get_tx_pool_address();
+    address = get_tx_pool_address(config_file);
     status = submit_transaction(tx, address);
 
     if(status < 0) {
         printf("Transaction failed to post.\n");
         return -1;
-    } 
+    }
 
     printf("Transaction submitted successfully!\n");
 
     return 0;
 }
 
-int cl_wallet_send_multi(std::string arg_amount, std::string arg_address, std::string arg_count) {
+int cl_wallet_send_multi(std::string config_file, std::string key_file, std::string arg_amount, std::string arg_address, std::string arg_count) {
     Transaction tx;
     Wallet wallet;
     Ed25519Key dest;
     std::string address;
     int amount, status, count;
-    
+
     dest = base58_decode_key(arg_address);
     amount = std::stoi(arg_amount);
     count = std::stoi(arg_count);
 
-    load_wallet(wallet);
-    address = get_tx_pool_address();
-    uint32_t id = get_tx_id();
+    load_wallet(wallet, config_file, key_file);
+    address = get_tx_pool_address(config_file);
+    uint32_t id = get_tx_id(config_file);
 
     printf("Submitting %d transactions...\n", count);
     uint64_t start = get_timestamp();
@@ -117,19 +117,19 @@ int cl_wallet_send_multi(std::string arg_amount, std::string arg_address, std::s
         if(status < 0) {
             printf("Transaction %d failed to post.\n", i);
             return -1;
-        } 
+        }
     }
 
     printf("Transactions submitted successfully! [%lu ms]\n", get_timestamp() - start);
-    set_tx_id(id + count);
+    set_tx_id(id + count, config_file);
 
     return 0;
 }
 
-int cl_wallet_transaction(std::string arg_id) {
-    std::string address = get_tx_pool_address();
+int cl_wallet_transaction(std::string config_file, std::string key_file, std::string arg_id) {
+    std::string address = get_tx_pool_address(config_file);
     uint64_t id = std::stoi(arg_id);
-    auto status = query_transaction(id, address);
+    auto status = query_transaction(config_file, key_file, id, address);
 
     printf("Transaction %lu status [%s]\n", id, 
         (status == Transaction::CONFIRMED)   ? "CONFIRMED" :
@@ -145,22 +145,22 @@ int run_wallet(std::vector<std::string> args) {
         return cl_wallet_help();
 
     if (args[0] == "create")
-        return cl_wallet_create();
+        return cl_wallet_create(args[1], args[2]);
 
-    if (args[0] == "key")
-        return cl_wallet_key();
+    if (args[0] == "key" && args.size() >= 3)
+        return cl_wallet_key(args[1], args[2]);
 
     if (args[0] == "balance")
-        return cl_wallet_balance();
+        return cl_wallet_balance(args[1], args[2]);
 
-    if (args[0] == "send" && args.size() >= 5 && args[1] == "multi")
-        return cl_wallet_send_multi(args[2], args[3], args[4]);
+    if (args[0] == "send" && args.size() >= 7 && args[1] == "multi")
+        return cl_wallet_send_multi(args[2], args[3], args[4], args[5], args[6]);
 
-    if (args[0] == "send" && args.size() >= 3)
-        return cl_wallet_send(args[1], args[2]);
+    if (args[0] == "send" && args.size() >= 5)
+        return cl_wallet_send(args[1], args[2], args[3], args[4]);
 
-    if (args[0] == "transaction" && args.size() >= 2)
-        return cl_wallet_transaction(args[1]);
+    if (args[0] == "transaction" && args.size() >= 4)
+        return cl_wallet_transaction(args[1], args[2], args[3]);
 
     printf("Please make sure you provided the correct command with all of its arguments.\n");
     return -1;
@@ -168,8 +168,9 @@ int run_wallet(std::vector<std::string> args) {
 
 int run_pool(std::vector<std::string> args) {
     printf("Starting transaction pool.\n");
-    std::string pool_address = get_tx_pool_address();
-    std::string bc_address = get_blockchain_address();
+    std::string config_file = args[0];
+    std::string pool_address = get_tx_pool_address(config_file);
+    std::string bc_address = get_blockchain_address(config_file);
     TxPool tx_pool = TxPool(bc_address);
     tx_pool.start(pool_address);
     return 0;
@@ -178,13 +179,14 @@ int run_pool(std::vector<std::string> args) {
 int run_validator(std::vector<std::string> args) {
     printf("Starting validator.\n");
     Wallet wallet;
-
-    std::string val_address = get_validator_address();
-    std::string bc_address = get_blockchain_address();
-    std::string met_address = get_metronome_address();
-    std::string pool_address = get_tx_pool_address();
-    std::string consensus_type = get_consensus_method();
-    load_wallet(wallet);
+    std::string config_file = args[0];
+    std::string key_file = args[1];
+    std::string val_address = get_validator_address(config_file);
+    std::string bc_address = get_blockchain_address(config_file);
+    std::string met_address = get_metronome_address(config_file);
+    std::string pool_address = get_tx_pool_address(config_file);
+    std::string consensus_type = get_consensus_method(config_file);
+    load_wallet(wallet, config_file, key_file);
 
     IConsensusModel* model;
 
@@ -196,8 +198,8 @@ int run_validator(std::vector<std::string> args) {
         ProofOfMemory* pom;
 
         uuid_generate(fingerprint.data());
-        set_validator_fingerprint(fingerprint);
-        memory = get_validator_memory();
+        set_validator_fingerprint(fingerprint, args[1]);
+        memory = get_validator_memory(args[1]);
 
         pom = new ProofOfMemory(wallet, fingerprint);
         pom->gen_hashes(memory);
@@ -216,8 +218,9 @@ int run_validator(std::vector<std::string> args) {
 
 int run_metronome(std::vector<std::string> args) {
     printf("Starting metronome.\n");
-    std::string blockchain = get_blockchain_address();
-    std::string address = get_metronome_address();
+    std::string config_file = args[0];
+    std::string blockchain = get_blockchain_address(config_file);
+    std::string address = get_metronome_address(config_file);
     Metronome metronome = Metronome(blockchain);
     metronome.start(address);
     return 0;
@@ -225,26 +228,20 @@ int run_metronome(std::vector<std::string> args) {
 
 int run_blockchain(std::vector<std::string> args) {
     printf("Starting blockchain.\n");
-    std::string address = get_blockchain_address();
-    std::string txpaddr = get_tx_pool_address();
-    if(args.size() ==  1) {
-        BlockChain blockchain = BlockChain(txpaddr, args[0]);
-        blockchain.start(address);
-    }
-    else if(args.size() == 0) {
-        BlockChain blockchain = BlockChain(txpaddr);
-        blockchain.start(address);
-    }
-    else{
-        throw std::runtime_error("Invalid blockchain config");
-    }
+    std::string config_file = args[0];
+    std::string key_file = args[1];
+
+    std::string address = get_blockchain_address(config_file);
+    std::string txpaddr = get_tx_pool_address(config_file);
+    BlockChain blockchain = BlockChain(txpaddr, config_file);
+    blockchain.start(address);
     return 0;
 }
 
 //Prints out all the monitor stats when called. Could be modified to print stats at regular intervals in a loop.
 int run_monitor(std::vector<std::string> args) {
     printf("Starting monitor\n");
-    print_monitor_stats();
+    print_monitor_stats(args[1]);
     return 0;
 }
 
@@ -258,13 +255,16 @@ int main(int argc, char** argv) {
 
     std::string command(argv[1]);
     std::vector<std::string> args;
-
     for(int i = 2; i < argc; i++)
         args.push_back(argv[i]);
 
+    for(std::string s : args)
+        printf("%s ", s.c_str());
+    printf("\n");
+
     if(command == "wallet")
         return run_wallet(args);
-    
+
     if(command == "pool")
         return run_pool(args);
 
@@ -279,7 +279,7 @@ int main(int argc, char** argv) {
 
     if(command == "monitor")
         return run_monitor(args);
-    
+
     printf("Could not find component to run.\n");
     return -1;
 }

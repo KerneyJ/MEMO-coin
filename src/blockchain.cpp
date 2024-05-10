@@ -12,24 +12,13 @@
 #include "messages.hpp"
 #include "config.hpp"
 
-BlockChain::BlockChain(std::string txpaddr) {
+BlockChain::BlockChain(std::string txpaddr, std::string config_file) {
     this->txpool_address = txpaddr;
-    this->file_name = "";
-}
-
-BlockChain::BlockChain(std::string txpaddr, std::string file_name) {
-    this->txpool_address = txpaddr;
-    this->file_name = file_name;
-    this->stored_chain = YAML::LoadFile(file_name);
-    printf("Loaded file %s\n", file_name.c_str());
-
-    /* Parse each block in the chain
-    for(YAML::const_iterator it=this->stored_chain.begin(); it != this->stored_chain.end(); ++it){
-        std::string block_name = it->first.as<std::string>();this->stored_chain[block_name]["header"]["hash"].as<std::string>()
-        Block b;
-        printf("hash: %s\n", this->stored_chain[block_name]["header"]["hash"].as<std::string>().c_str());
-    }
-    */
+    this->config_file = config_file;
+    YAML::Node config = YAML::LoadFile(this->config_file);
+    this->file_name = config["blockchain"]["file"].as<std::string>();
+    if(!this->file_name.empty())
+        this->stored_chain = YAML::LoadFile(file_name);
 }
 
 void BlockChain::start(std::string address) {
@@ -181,7 +170,7 @@ void BlockChain::tx_status(zmq::socket_t &client, MessageBuffer data){
 }
 
 void BlockChain::load_genesis(){
-    Block genesis = get_genesis_block();
+    Block genesis = get_genesis_block(this->config_file);
     this->blocks.push_back(genesis);
     sync_bal(genesis); // I'm pretty sure we need to sync bal after genesis
 #ifdef DEBUG

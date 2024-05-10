@@ -25,10 +25,10 @@ void display_wallet(Wallet& wallet) {
     printf("Private Key: %s\n", priv_key.c_str());
 }
 
-int query_balance(std::string blockchain_node) {
+int query_balance(std::string blockchain_node, std::string config_file, std::string key_file) {
     Wallet wallet;
 
-    load_wallet(wallet);
+    load_wallet(wallet, config_file, key_file);
 
     zmq::context_t context;
     zmq::socket_t requester(context, ZMQ_REQ);

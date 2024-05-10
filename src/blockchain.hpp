@@ -14,6 +14,7 @@ class BlockChain {
     // TODO: serialize blocks and write to disk(i.e. make persistent) maybe use sparse file? talk to lan
     private:
         Server server;
+        std::string config_file;
         std::string txpool_address;
         std::string file_name;
         std::vector<Block> blocks;
@@ -39,7 +40,6 @@ class BlockChain {
         void load_file(std::string file_name);
         void write_block(Block b);
     public:
-        BlockChain(std::string txpaddr);
-        BlockChain(std::string txpaddr, std::string file_name);
+        BlockChain(std::string txpaddr, std::string config_file);
         void start(std::string address);
 };

@@ -1,8 +1,10 @@
-void last_block();
-void num_trans();
-void num_validators();
-void num_wallets();
-void num_coins();
+#include <string>
+
+void last_block(std::string config_file);
+void num_trans(std::string config_file);
+void num_validators(std::string config_file);
+void num_wallets(std::string config_file);
+void num_coins(std::string config_file);
 void hashes_per_second();
 void hashes_stored();
-void print_monitor_stats();
+void print_monitor_stats(std::string config_file);

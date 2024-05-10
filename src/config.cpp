@@ -11,9 +11,9 @@
 
 // Wallet config
 
-bool load_wallet(Wallet &wallet) {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
-    YAML::Node private_config = YAML::LoadFile(PRIVATE_KEY_FILE);
+bool load_wallet(Wallet& wallet, std::string config_file, std::string key_file){
+    YAML::Node config = YAML::LoadFile(config_file);
+    YAML::Node private_config = YAML::LoadFile(key_file);
 
     const std::string pub_key = config["wallet"]["public_key"].as<std::string>();
     const std::string priv_key = private_config["wallet"]["private_key"].as<std::string>();
@@ -24,15 +24,15 @@ bool load_wallet(Wallet &wallet) {
     return true;
 }
 
-bool store_wallet(Wallet &wallet) {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
-    YAML::Node private_config = YAML::LoadFile(PRIVATE_KEY_FILE);
+bool store_wallet(Wallet& wallet, std::string config_file, std::string key_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
+    YAML::Node private_config = YAML::LoadFile(key_file);
 
     config["wallet"]["public_key"] = base58_encode_key(wallet.pub_key);
     private_config["wallet"]["private_key"] =  base58_encode_key(wallet.priv_key);
 
-    std::ofstream conf_out(CONFIG_FILE);
-    std::ofstream priv_conf_out(PRIVATE_KEY_FILE);
+    std::ofstream conf_out(config_file);
+    std::ofstream priv_conf_out(key_file);
     
     conf_out << config;
     priv_conf_out << private_config;
@@ -40,61 +40,61 @@ bool store_wallet(Wallet &wallet) {
     return true;
 }
 
-uint64_t get_tx_id() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+uint64_t get_tx_id(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
 
     const uint64_t nonce = config["wallet"]["nonce"].as<uint64_t>();
     config["wallet"]["nonce"] = nonce+1;
 
-    std::ofstream fout(CONFIG_FILE);
+    std::ofstream fout(config_file);
     fout << config;
 
     return nonce;
 }
 
-void set_tx_id(uint64_t nonce) {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+void set_tx_id(uint64_t nonce, std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
 
     config["wallet"]["nonce"] = nonce;
 
-    std::ofstream fout(CONFIG_FILE);
+    std::ofstream fout(config_file);
     fout << config;
 }
 
 // Trancastion pool config
 
-std::string get_tx_pool_address() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_tx_pool_address(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["tx_pool"]["address"].as<std::string>();
 }
 
-std::string get_tx_pool_threads() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_tx_pool_threads(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["tx_pool"]["address"].as<std::string>();
 }
 
 // Validator config
 
-std::string get_validator_address() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_validator_address(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["validator"]["address"].as<std::string>();
 }
 
-std::string get_validator_threads() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_validator_threads(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["validator"]["address"].as<std::string>();
 }
 
-std::string get_consensus_method() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_consensus_method(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["validator"]["consensus"].as<std::string>();
 }
 
-uint32_t get_validator_memory() {
+uint32_t get_validator_memory(std::string config_file) {
     int base_val, num_end;
     std::string str_val;
 
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+    YAML::Node config = YAML::LoadFile(config_file);
 
     str_val = config["validator"]["memory"].as<std::string>();
 
@@ -113,40 +113,40 @@ uint32_t get_validator_memory() {
     throw std::runtime_error("Validator memory improperly formatted.");
 }
 
-void set_validator_fingerprint(UUID fingerprint) {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+void set_validator_fingerprint(UUID fingerprint, std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
 
     config["validator"]["fingerprint"] = base58_encode_uuid(fingerprint);
 
-    std::ofstream fout(CONFIG_FILE);
+    std::ofstream fout(config_file);
     fout << config;
 }
 
 // Metronome config
 
-std::string get_metronome_address() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_metronome_address(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["metronome"]["address"].as<std::string>();
 }
 
-std::string get_metronome_threads() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_metronome_threads(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["metronome"]["address"].as<std::string>();
 }
 
 // Blockchain config
 
-std::string get_blockchain_address() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_blockchain_address(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["blockchain"]["address"].as<std::string>();
 }
 
-std::string get_blockchain_threads() {
-    YAML::Node config = YAML::LoadFile(CONFIG_FILE);
+std::string get_blockchain_threads(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
     return config["blockchain"]["address"].as<std::string>();
 }
 
-Block get_genesis_block() {
+Block get_genesis_block(std::string config_file) {
     Block genesis;
     YAML::Node config = YAML::LoadFile(GENESIS_FILE);
 

@@ -14,4 +14,4 @@ struct Wallet {
 
 Wallet create_wallet();
 void display_wallet(Wallet& wallet);
-int query_balance(std::string blockchain_node);
+int query_balance(std::string blockchain_node, std::string config_file, std::string key_file);

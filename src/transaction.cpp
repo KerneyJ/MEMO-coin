@@ -87,10 +87,10 @@ int submit_transaction(Transaction tx, std::string tx_pool) {
     return (response.header.type == STATUS_GOOD) ? 0 : -1;
 }
 
-Transaction::Status query_transaction(uint64_t id, std::string tx_pool) {
+Transaction::Status query_transaction(std::string config_file, std::string key_file, uint64_t id, std::string tx_pool) {
     Wallet wallet;
 
-    load_wallet(wallet);
+    load_wallet(wallet, config_file, key_file);
     std::pair<Ed25519Key, uint64_t> tx_key = { wallet.pub_key, id };
 
     zmq::context_t context;
