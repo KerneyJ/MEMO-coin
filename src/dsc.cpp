@@ -168,6 +168,11 @@ int run_wallet(std::vector<std::string> args) {
 
 int run_pool(std::vector<std::string> args) {
     printf("Starting transaction pool.\n");
+    if(args.size() < 1){
+        printf("Not enough arguments for blockchain\n");
+        printf("./bin/dsc pool <config file>\n");
+        return -1;
+    }
     std::string config_file = args[0];
     std::string pool_address = get_tx_pool_address(config_file);
     std::string bc_address = get_blockchain_address(config_file);
@@ -179,6 +184,11 @@ int run_pool(std::vector<std::string> args) {
 int run_validator(std::vector<std::string> args) {
     printf("Starting validator.\n");
     Wallet wallet;
+    if(args.size() < 2){
+        printf("Not enough arguments for blockchain\n");
+        printf("./bin/dsc blockchain <config file> <private key file>\n");
+        return -1;
+    }
     std::string config_file = args[0];
     std::string key_file = args[1];
     std::string val_address = get_validator_address(config_file);
@@ -218,6 +228,11 @@ int run_validator(std::vector<std::string> args) {
 
 int run_metronome(std::vector<std::string> args) {
     printf("Starting metronome.\n");
+    if(args.size() < 1){
+        printf("Not enough arguments for blockchain\n");
+        printf("./bin/dsc metronome <config file>\n");
+        return -1;
+    }
     std::string config_file = args[0];
     std::string blockchain = get_blockchain_address(config_file);
     std::string address = get_metronome_address(config_file);
@@ -228,8 +243,12 @@ int run_metronome(std::vector<std::string> args) {
 
 int run_blockchain(std::vector<std::string> args) {
     printf("Starting blockchain.\n");
+    if(args.size() < 1){
+        printf("Not enough arguments for blockchain\n");
+        printf("./bin/dsc blockchain <config file>\n");
+        return -1;
+    }
     std::string config_file = args[0];
-    std::string key_file = args[1];
 
     std::string address = get_blockchain_address(config_file);
     std::string txpaddr = get_tx_pool_address(config_file);
@@ -257,10 +276,6 @@ int main(int argc, char** argv) {
     std::vector<std::string> args;
     for(int i = 2; i < argc; i++)
         args.push_back(argv[i]);
-
-    for(std::string s : args)
-        printf("%s ", s.c_str());
-    printf("\n");
 
     if(command == "wallet")
         return run_wallet(args);
