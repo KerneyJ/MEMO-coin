@@ -16,3 +16,10 @@ void display_block(Block block) {
     for(auto tx : block.transactions)
         display_transaction(tx);
 }
+
+bool isequal_b3hash(Blake3Hash h1, Blake3Hash h2) {
+    for(int i = 0; i < BLAKE3_OUT_LEN; i++)
+        if(h1[i] != h2[i])
+            return false;
+    return true;
+}

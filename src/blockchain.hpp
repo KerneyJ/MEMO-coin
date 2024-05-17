@@ -14,10 +14,12 @@ class BlockChain {
     // TODO: serialize blocks and write to disk(i.e. make persistent) maybe use sparse file? talk to lan
     private:
         Server server;
+        ThreadPool *peer_threads;
         std::string config_file;
         std::string txpool_address;
         std::string file_name;
         std::vector<Block> blocks;
+        std::vector<std::string> peers;
         std::mutex blockmutex;
         std::mutex writemutex;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;

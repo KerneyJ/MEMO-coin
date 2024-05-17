@@ -101,7 +101,7 @@ Message<PayloadType> recv_message(zmq::socket_t &client) {
     uint8_t* payload_loc = (uint8_t*) recv_msgs[1].data();
     size_t payload_size = recv_msgs[1].size();
     std::vector<uint8_t> payload_buf(&payload_loc[0], &payload_loc[payload_size]);
-    
+
     message.header = alpaca::deserialize<OPTIONS, MessageHeader>(header_buf, ec);
     message.data = alpaca::deserialize<OPTIONS, MessagePayload<PayloadType>>(payload_buf, ec).data;
 
