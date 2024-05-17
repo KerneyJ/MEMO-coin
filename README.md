@@ -76,8 +76,3 @@ make install
 
 # install alpaca:
 * https://github.com/p-ranav/alpaca/tree/master#building-installing-and-testing
-
-
-
-
-
