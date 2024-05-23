@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <signal.h>
 #include <zmq.hpp>
+#include <thread>
 
 #include "messages.hpp"
 #include "thread_pool.hpp"
@@ -23,4 +24,5 @@ class Server {
         ~Server();
         int start(std::string address, msg_func message_handler, bool blocking = true);
         zmq::context_t& get_context();
+        std::thread proxy_thread;
 };

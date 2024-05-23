@@ -26,7 +26,7 @@ void Server::server_loop(zmq::context_t &context, msg_func message_handler, vola
 }
 
 int Server::start(std::string address, msg_func message_handler, bool blocking) {
-    printf("Initializing server at %s.\n", address.c_str());
+    printf("Initializing server at %s with %i threads\n", address.c_str(), threads->size());
 
     router = zmq::socket_t(context, ZMQ_ROUTER);
     router.bind(address);
@@ -35,6 +35,9 @@ int Server::start(std::string address, msg_func message_handler, bool blocking) 
     dealer.bind( "inproc://workers");
 
     for(int i = 0; i < threads->size(); i++) {
+#ifdef DEBUG
+        printf("[DEBUG] adding message hanlder job to thread queue\n");
+#endif
         threads->queue_job([this, message_handler] {
             server_loop(context, message_handler, &interrupt);
         });
@@ -43,9 +46,9 @@ int Server::start(std::string address, msg_func message_handler, bool blocking) 
     if(blocking) {
         zmq::proxy(router, dealer);
     } else {
-        std::thread([this] {
+        proxy_thread = std::thread([this] {
             zmq::proxy(router, dealer);
-        }).detach();
+        }); // .detach();
     }
 
     return 0;
@@ -57,7 +60,7 @@ zmq::context_t& Server::get_context() {
 
 Server::Server() {
     interrupt = 0;
-    threads = new ThreadPool();
+    threads = new ThreadPool(2);
 }
 
 Server::~Server() {

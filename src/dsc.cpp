@@ -242,6 +242,7 @@ int run_metronome(std::vector<std::string> args) {
 }
 
 int run_blockchain(std::vector<std::string> args) {
+    // TODO make a config argument to make the blockchain start by syncing with a peer node
     printf("Starting blockchain.\n");
     if(args.size() < 1){
         printf("Not enough arguments for blockchain\n");

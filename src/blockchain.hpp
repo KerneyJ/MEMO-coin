@@ -24,14 +24,18 @@ class BlockChain {
         std::mutex writemutex;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         YAML::Node stored_chain;
+        bool _sync_chain;
+        bool wait;
         void load_genesis();
         void sync_bal(Block b);
-        void add_block(zmq::socket_t &client, MessageBuffer data);
+        int add_block(Block b);
+        void submit_block(zmq::socket_t &client, MessageBuffer data);
         void get_balance(zmq::socket_t &client, MessageBuffer data);
         void last_block(zmq::socket_t &client, MessageBuffer data);
         void tx_status(zmq::socket_t &client, MessageBuffer data);
         void get_num_addr(zmq::socket_t &client, MessageBuffer data);
         void get_total_coins(zmq::socket_t &client, MessageBuffer data);
+        void sync_chain(zmq::socket_t &client, MessageBuffer data);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
         /* TODO Maybe store blocks as sparse files
          * since they should all be of a maximum size

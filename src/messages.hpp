@@ -31,6 +31,7 @@ enum MessageType {
     QUERY_COINS,
     REGISTER_VALIDATOR,
     QUERY_NUM_VALIDATORS,
+    SYNC_CHAIN,
 };
 
 struct MessageHeader {

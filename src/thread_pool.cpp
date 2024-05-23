@@ -11,7 +11,6 @@
 
 ThreadPool::ThreadPool(int num_threads) {
     int i;
-
     interrupt = false;
     num_threads = num_threads > 0 ? num_threads : std::thread::hardware_concurrency(); 
 #ifdef DEBUG
@@ -24,7 +23,7 @@ ThreadPool::ThreadPool(int num_threads) {
 
 void ThreadPool::queue_job(std::function<void()> job) {
 #ifdef DEBUG
-    printf("Adding job to threadpool queue.\n");
+    // printf("Adding job to threadpool queue.\n");
 #endif
     queue_lock.lock();
     work_queue.push(job);

@@ -7,7 +7,7 @@ void display_block_header(BlockHeader header) {
     printf("\tprev_hash: %s\n", base58_encode_key(header.prev_hash).c_str());
     printf("\tdifficulty: %d\n", header.difficulty);
     printf("\ttimestamp: %lu\n", header.timestamp);
-    printf("\tid: %d\n", header.id);
+    printf("\tid: %lu\n", header.id);
 }
 
 void display_block(Block block) {
