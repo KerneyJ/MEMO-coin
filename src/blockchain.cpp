@@ -167,7 +167,7 @@ int BlockChain::add_block(Block b){
     const std::lock_guard<std::mutex> lock(blockmutex);
     Block last_block = blocks.back();
     // compare the prev_hash of received block to hash of last block
-    if(!isequal_b3hash(last_block.header.hash, b.header.prev_hash)){
+    if(cmp_b3hash(last_block.header.hash, b.header.prev_hash)){
         printf("[ERROR] Received a block who's prev hash is not the hash of the last stored block\n");
         return -1;
     }

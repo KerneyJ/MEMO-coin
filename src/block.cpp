@@ -1,5 +1,6 @@
 #include "block.hpp"
 #include "keys.hpp"
+#include <cstring>
 
 void display_block_header(BlockHeader header) {
     printf("Block header:\n");
@@ -17,9 +18,11 @@ void display_block(Block block) {
         display_transaction(tx);
 }
 
-bool isequal_b3hash(Blake3Hash h1, Blake3Hash h2) {
-    for(int i = 0; i < BLAKE3_OUT_LEN; i++)
-        if(h1[i] != h2[i])
-            return false;
-    return true;
+
+int cmp_b3hash(Blake3Hash h1, Blake3Hash h2) {
+    uint8_t h1a[BLAKE3_OUT_LEN] = {0};
+    uint8_t h2a[BLAKE3_OUT_LEN] = {0};
+    std::copy(std::begin(h1), std::end(h1), std::begin(h1a));
+    std::copy(std::begin(h2), std::end(h2), std::begin(h2a));
+    return std::memcmp(h1a, h2a, BLAKE3_OUT_LEN);
 }

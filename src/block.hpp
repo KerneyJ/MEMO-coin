@@ -29,4 +29,4 @@ struct Block {
 
 void display_block_header(BlockHeader header);
 void display_block(Block header);
-bool isequal_b3hash(Blake3Hash h1, Blake3Hash h2);
+int cmp_b3hash(Blake3Hash h1, Blake3Hash h2);
