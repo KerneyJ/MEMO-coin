@@ -255,8 +255,7 @@ int run_blockchain(std::vector<std::string> args) {
     std::string address = get_blockchain_address(config_file);
     std::string txpaddr = get_tx_pool_address(config_file);
     std::string metroaddr = get_metronome_address(config_file);
-    bool sync_chain = get_sync_chain(config_file);
-    BlockChain blockchain = BlockChain(txpaddr, metroaddr, sync_chain, config_file);
+    BlockChain blockchain = BlockChain(txpaddr, metroaddr, config_file);
     blockchain.start(address);
     return 0;
 }

@@ -17,6 +17,7 @@ class BlockChain {
         ThreadPool *peer_threads;
         std::string config_file;
         std::string txpool_address;
+        std::string metro_address;
         std::string file_name;
         std::vector<Block> blocks;
         std::vector<std::string> peers;
@@ -24,11 +25,11 @@ class BlockChain {
         std::mutex writemutex;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         YAML::Node stored_chain;
-        bool _sync_chain;
         bool wait;
         void load_genesis();
         void sync_bal(Block b);
         int add_block(Block b);
+        int submit_block_peer(Block b, std::string peer_addr);
         void submit_block(zmq::socket_t &client, MessageBuffer data);
         void get_balance(zmq::socket_t &client, MessageBuffer data);
         void last_block(zmq::socket_t &client, MessageBuffer data);
@@ -36,6 +37,8 @@ class BlockChain {
         void get_num_addr(zmq::socket_t &client, MessageBuffer data);
         void get_total_coins(zmq::socket_t &client, MessageBuffer data);
         void sync_chain(zmq::socket_t &client, MessageBuffer data);
+        void get_metro_addr(zmq::socket_t &client, MessageBuffer data);
+        void get_peer_addrs(zmq::socket_t &client, MessageBuffer data);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
         /* TODO Maybe store blocks as sparse files
          * since they should all be of a maximum size
@@ -46,6 +49,6 @@ class BlockChain {
         void load_file(std::string file_name);
         void write_block(Block b);
     public:
-        BlockChain(std::string txpaddr, std::string config_file);
+        BlockChain(std::string txpaddr, std::string metroaddr, std::string config_file);
         void start(std::string address);
 };

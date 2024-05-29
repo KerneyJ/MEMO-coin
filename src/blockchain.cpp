@@ -12,15 +12,15 @@
 #include "messages.hpp"
 #include "config.hpp"
 
-BlockChain::BlockChain(std::string txpaddr, std::string config_file) {
+BlockChain::BlockChain(std::string txpaddr, std::string metroaddr, std::string config_file) {
     this->txpool_address = txpaddr;
+    this->metro_address = metroaddr;
     this->config_file = config_file;
     this->wait = true;
     YAML::Node config = YAML::LoadFile(this->config_file);
     this->file_name = config["blockchain"]["file"].as<std::string>();
     if(!this->file_name.empty())
         this->stored_chain = YAML::LoadFile(file_name);
-    this->_sync_chain = config["blockchain"]["sync_chain"].as<bool>();
     for(auto iter : config["blockchain"]["peers"])
         this->peers.push_back(iter["address"].as<std::string>());
     this->peer_threads = new ThreadPool(2);
@@ -30,7 +30,7 @@ void BlockChain::start(std::string address) {
     this->load_genesis();
 
     // Check if we need to read from a file
-    if(!this->file_name.empty() && !this->_sync_chain){
+    if(!this->file_name.empty()){
         for(YAML::const_iterator it = this->stored_chain.begin(); it != this->stored_chain.end(); ++it){
             std::string block_name = it->first.as<std::string>();
             if(block_name.find("Block") == std::string::npos)
@@ -43,6 +43,7 @@ void BlockChain::start(std::string address) {
             b.header.prev_hash = base58_decode_key(this->stored_chain[block_name]["header"]["prev_hash"].as<std::string>());
             b.header.difficulty = this->stored_chain[block_name]["header"]["difficulty"].as<uint32_t>();
             b.header.timestamp = this->stored_chain[block_name]["header"]["timestamp"].as<uint64_t>();
+            b.header.id = this->stored_chain[block_name]["header"]["id"].as<uint32_t>();
             b.header.input.fingerprint = base58_decode_uuid(this->stored_chain[block_name]["header"]["input"]["fingerprint"].as<std::string>());
             b.header.input.public_key = base58_decode_key(this->stored_chain[block_name]["header"]["input"]["publickey"].as<std::string>());
             b.header.input.nonce = this->stored_chain[block_name]["header"]["input"]["nonce"].as<uint64_t>();
@@ -66,44 +67,8 @@ void BlockChain::start(std::string address) {
     else
         this->file_name = "blockchain.yaml";
     auto fp = std::bind(&BlockChain::request_handler, this, std::placeholders::_1, std::placeholders::_2);
-    if(server.start(address, fp, false) < 0)
+    if(server.start(address, fp) < 0)
         throw std::runtime_error("server could not bind.");
-
-    if(this->_sync_chain){
-        if(this->peers.size() == 0){
-            printf("[ERROR] attempted to sync with peer but no peers provided in config file\n");
-            exit(1);
-        }
-        std::string peer_addr = this->peers[0];
-
-#ifdef DEBUG
-        printf("[DEBUG] attempting to sync with peer: %s\n", peer_addr.c_str());
-#endif
-
-        zmq::socket_t requester(server.get_context(), ZMQ_REQ);
-        requester.connect(peer_addr);
-
-#ifdef DEBUG
-        printf("[DEBUG] connected with peer\n");
-#endif
-        send_message(requester, SYNC_CHAIN);
-        auto response = recv_message<std::vector<Block>>(requester);
-        std::vector<Block> peer_blocks = response.data;
-        if(response.header.type != STATUS_GOOD)
-            printf("[ERROR] received non good status when syncing with peer\n");
-
-#ifdef DEBUG
-        printf("[DEBUG] Received blocks, proceeding to add them\n");
-#endif
-        for(int i = 0; i < peer_blocks.size(); i++){
-            Block block = peer_blocks[i];
-#ifdef DEBUG
-            display_block_header(block.header);
-#endif
-            add_block(block);
-        }
-    }
-    this->server.proxy_thread.join();
 }
 
 void BlockChain::sync_bal(Block b){
@@ -169,7 +134,12 @@ int BlockChain::add_block(Block b){
     // compare the prev_hash of received block to hash of last block
     if(cmp_b3hash(last_block.header.hash, b.header.prev_hash)){
         printf("[ERROR] Received a block who's prev hash is not the hash of the last stored block\n");
-        return -1;
+#ifdef DEBUG
+        printf("[ERROR] Displaying block headers, most recent accepted block first, received block second\n");
+        display_block_header(last_block.header);
+        display_block_header(b.header);
+#endif
+        exit(1);
     }
     /* TODO ensure block is valid
      * first send the block to validator so it can be verified
@@ -182,15 +152,40 @@ int BlockChain::add_block(Block b){
     write_block(b);
     sync_bal(b);
 #ifdef DEBUG
-    printf("[DEBUG] Successfully added block\n");
+    printf("[DEBUG] Successfully added block. Header displayed below\n");
+    display_block_header(b.header);
 #endif
     return 0;
+}
+
+int BlockChain::submit_block_peer(Block b, std::string peer_addr) {
+    zmq::context_t& context = server.get_context();
+    zmq::socket_t peer_req(context, ZMQ_REQ);
+    zmq::socket_t peer_metro_req(context, ZMQ_REQ);
+#ifdef DEBUG
+    printf("[DEBUG] Getting metronme address from peer %s\n", peer_addr.c_str());
+#endif
+
+    peer_req.connect(peer_addr);
+    send_message(peer_req, GET_METRO_ADDR);
+    auto res1 = recv_message<std::string>(peer_req);
+    std::string metro_addr = res1.data;
+
+#ifdef DEBUG
+    printf("[DEBUG] received peer metronome address of %s\n", metro_addr.c_str());
+#endif
+    peer_metro_req.connect(metro_addr);
+    send_message(peer_metro_req, b, SUBMIT_BLOCK);
+    auto res2 = recv_message<NullMessage>(peer_metro_req);
+
+    return res2.header.type == STATUS_GOOD;
 }
 
 void BlockChain::submit_block(zmq::socket_t &client, MessageBuffer data) {
 #ifdef DEBUG
     printf("Received block\n");
 #endif
+    /* TODO need to ensure that the client is our metronome */
 
     auto block = deserialize_payload<Block>(data);
     if(add_block(block) < 0){
@@ -210,32 +205,20 @@ void BlockChain::submit_block(zmq::socket_t &client, MessageBuffer data) {
 
     send_message(requester, block, CONFIRM_BLOCK);
     auto response = recv_message<NullMessage>(requester);
-/*
-    for(std::string peer_addr : this->peers){
-        // * TODO need to error handle
+
+    /*for(std::string peer_addr : this->peers){
+        / * TODO need to error handle
          * Make a map of peers -> queues
          * each thread will send blocks to the peer they are mapped to
          * we will put blocks on a queue in this loop
          * TODO make functions for adding new peers
          * TODO make function for deleting a peer
-         * //
+         * /
         this->peer_threads->queue_job( [this, peer_addr, block] {
             printf("Sending block to peer %s\n", peer_addr.c_str());
-            zmq::context_t &temp_context = server.get_context();
-            zmq::socket_t peer_req(temp_context, ZMQ_REQ);
-            peer_req.connect(peer_addr);
-            send_message(peer_req, block, SUBMIT_BLOCK);
-            auto peer_res = recv_message<NullMessage>(peer_req);
-            printf("Block sent, response received\n");
+            submit_block_peer(block, peer_addr);
         });
-        // *
-        zmq::socket_t peer_req(context, ZMQ_REQ);
-        peer_req.connect(peer_addr);
-        send_message(peer_req, block, SUBMIT_BLOCK);
-        auto peer_res = recv_message<NullMessage>(peer_req);
-        * //
-    }
-*/
+    }*/
 }
 
 void BlockChain::get_balance(zmq::socket_t &client, MessageBuffer data) {
@@ -247,6 +230,9 @@ void BlockChain::get_balance(zmq::socket_t &client, MessageBuffer data) {
 
 void BlockChain::last_block(zmq::socket_t &client, MessageBuffer data){
     Block b = this->blocks.back();
+#ifdef DEBUG
+    display_block_header(b.header);
+#endif
     send_message(client, b.header, STATUS_GOOD);
 }
 
@@ -312,9 +298,19 @@ void BlockChain::get_total_coins(zmq::socket_t &client, MessageBuffer data) {
 
 void BlockChain::sync_chain(zmq::socket_t &client, MessageBuffer data){
 #ifdef DEBUG
-    printf("[DEBUG] Received sync chain message, needs to send %lu blocks to send\n", this->blocks.size());
+    printf("[DEBUG] Received sync chain message, %lu blocks to send\n", this->blocks.size());
 #endif
     send_message(client, this->blocks, STATUS_GOOD);
+    return;
+}
+
+void BlockChain::get_metro_addr(zmq::socket_t &client, MessageBuffer data) {
+    send_message(client, metro_address, STATUS_GOOD);
+    return;
+}
+
+void BlockChain::get_peer_addrs(zmq::socket_t &client, MessageBuffer data) {
+    send_message(client, peers, STATUS_GOOD);
     return;
 }
 
@@ -332,29 +328,39 @@ void BlockChain::request_handler(zmq::socket_t &client, Message<MessageBuffer> r
             return submit_block(client, request.data);
         case QUERY_LAST_BLOCK:
 #ifdef DEBUG
-    printf("[DEBUG] QUERY_LAST_BLOCK\n");
+            printf("[DEBUG] QUERY_LAST_BLOCK\n");
 #endif
             return last_block(client, request.data);
         case QUERY_TX_STATUS:
 #ifdef DEBUG
-    printf("[DEBUG] QUERY_TX_STATUS\n");
+            printf("[DEBUG] QUERY_TX_STATUS\n");
 #endif
             return tx_status(client, request.data);
         case QUERY_NUM_ADDRS:
 #ifdef DEBUG
-    printf("[DEBUG] QUERY_NUM_ADDRS\n");
+            printf("[DEBUG] QUERY_NUM_ADDRS\n");
 #endif
             return get_num_addr(client, request.data);
         case QUERY_COINS:
 #ifdef DEBUG
-    printf("[DEBUG] QUERY_COINS\n");
+            printf("[DEBUG] QUERY_COINS\n");
 #endif
             return get_total_coins(client, request.data);
         case SYNC_CHAIN:
 #ifdef DEBUG
-    printf("[DEBUG] SYNC_CHAIN\n");
+            printf("[DEBUG] SYNC_CHAIN\n");
 #endif
             return sync_chain(client, request.data);
+        case GET_METRO_ADDR:
+#ifdef DEBUG
+            printf("[DEBUG] GET_METRO_ADDR\n");
+#endif
+            return get_metro_addr(client, request.data);
+        case GET_PEER_ADDRS:
+#ifdef DEBUG
+            printf("[DEBUG] GET_PEER_ADDRS\n");
+#endif
+            return get_peer_addrs(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

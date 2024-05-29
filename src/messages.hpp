@@ -32,6 +32,9 @@ enum MessageType {
     REGISTER_VALIDATOR,
     QUERY_NUM_VALIDATORS,
     SYNC_CHAIN,
+    CURRENT_PROBLEM,
+    GET_METRO_ADDR,
+    GET_PEER_ADDRS,
 };
 
 struct MessageHeader {

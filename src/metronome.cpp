@@ -11,8 +11,9 @@
 #include "transaction.hpp"
 #include "utils.hpp"
 
-Metronome::Metronome(std::string _blockchain) {
+Metronome::Metronome(std::string _blockchain, bool sync_chain) {
     blockchain = _blockchain;
+    _sync_chain = sync_chain;
     difficulty = MIN_DIFFICULTY;
     sleeping = true;
     last_block = request_last_block();
@@ -27,6 +28,10 @@ void Metronome::start(std::string address) {
     if(server.start(address, fp, false) < 0)
         throw std::runtime_error("Server could not bind.");
 
+    if(_sync_chain){
+        sync_chain();
+        last_block = request_last_block();
+    }
     std::cv_status status;
     std::chrono::system_clock::time_point block_deadline;
 
@@ -89,6 +94,49 @@ void Metronome::submit_empty_block() {
     last_block = empty_block.header;
 }
 
+void Metronome::sync_chain() {
+    zmq::context_t& context = server.get_context();
+    zmq::socket_t blockchain_req(context, ZMQ_REQ);
+    zmq::socket_t peer_req(context, ZMQ_REQ);
+
+    /* get vector of peers from blockchain node
+     * FIXME if there are multiple blockchain nodes
+     * then we need to pick one from the vector
+     */
+    blockchain_req.connect(blockchain);
+    send_message(blockchain_req, GET_PEER_ADDRS);
+    auto res1 = recv_message<std::vector<std::string>>(blockchain_req);
+    std::vector<std::string> peers = res1.data;
+    std::string peer = peers[0]; /* TODO probably get random peer in future */
+
+    /* get vector of blocks from blockchain node */
+    peer_req.connect(peer);
+    send_message(peer_req, SYNC_CHAIN);
+    auto res2 = recv_message<std::vector<Block>>(peer_req);
+    if(res2.header.type != STATUS_GOOD) {
+        printf("[ERROR] received non good status when synching with peer %s\n", peer.c_str());
+        exit(1);
+    }
+    std::vector<Block> blocks = res2.data;
+    for(int i = 0; i < blocks.size(); i++) {
+        Block block = blocks[i];
+        if(block.header.id == 0)
+            continue; /* everyone should already have genesis block(block with id 0) */
+#ifdef DEBUG
+        printf("[DEBUG] Attempting to submit block\n");
+        display_block_header(block.header);
+#endif
+        // TODO need to validate the vector of blocks we received
+        if(submit_block(block) < 0) {
+            printf("[ERROR] Block rejected from blockchain.\n");
+            exit(1);
+        }
+#ifdef DEBUG
+        printf("[DEBUG] successfully submited block\n");
+#endif
+    }
+}
+
 void Metronome::update_difficulty(bool timed_out) {
     int solved_time = curr_solved_time - prev_solved_time;
 
@@ -121,7 +169,6 @@ void Metronome::update_difficulty(bool timed_out) {
 int Metronome::submit_block(Block block) {
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
     requester.connect(blockchain);
-
     send_message(requester, block, SUBMIT_BLOCK);
     auto response = recv_message<NullMessage>(requester);
 
@@ -144,13 +191,13 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
 
     // TODO: validate block
     if(block.header.id != last_block.id + 1) {
-        printf("Block not valid. Rejecting...\n");
+        printf("[ERROR] Block not valid. Rejecting...\n");
         send_message(client, STATUS_BAD);
         return;
     }
 
     if(submit_block(block) < 0) {
-        printf("Block rejected from blockchain.\n");
+        printf("[ERROR] Block rejected from blockchain.\n");
         send_message(client, STATUS_BAD);
         return;
     }
@@ -188,6 +235,10 @@ void Metronome::query_validators(zmq::socket_t &client, MessageBuffer data) {
     send_message(client, active_validators, STATUS_GOOD);
 }
 
+void Metronome::current_problem(zmq::socket_t &client, MessageBuffer data) {
+    send_message(client, last_block.hash, STATUS_GOOD);
+}
+
 void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
     switch (request.header.type) {
         case SUBMIT_BLOCK:
@@ -198,6 +249,8 @@ void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> re
             return register_validator(client, request.data);
         case QUERY_NUM_VALIDATORS:
             return query_validators(client, request.data);
+        case CURRENT_PROBLEM: // TODO maybe delete this function(different way of submitting blocks)
+            return current_problem(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }
