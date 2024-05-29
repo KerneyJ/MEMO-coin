@@ -58,6 +58,7 @@ make install
   - pick random blockchain node for load balancing
 - [ ] Make Transaction Pool Distributed
 - [ ] Make Metronome Distributed
+- [ ] Logging system
 - Try not to add complexity to the wallet or the validator(push any more complexity to the blockchain, transaction pool, or metronome)
 - Convert proof of memory to proof of storage
 
