@@ -7,6 +7,9 @@
 #define PRIVATE_KEY_FILE "dsc-key.yaml"
 #define GENESIS_FILE "genesis.yaml"
 
+// global config
+bool get_sync_chain(std::string config_file);
+
 // Wallet config
 
 bool load_wallet(Wallet& wallet, std::string config_file, std::string key_file);

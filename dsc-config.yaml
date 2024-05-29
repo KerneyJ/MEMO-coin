@@ -1,3 +1,4 @@
+sync_chain: false
 wallet:
   public_key: AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby
   nonce: 386350
@@ -17,6 +18,5 @@ blockchain:
   threads: 2
   address: tcp://127.0.0.1:10004
   file: "test_blockchain.yaml"
-  sync_chain: false
   peers:
     - address: tcp://127.0.0.1:10014

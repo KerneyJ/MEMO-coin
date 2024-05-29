@@ -9,6 +9,15 @@
 #include "config.hpp"
 #include "keys.hpp"
 
+// global config
+bool get_sync_chain(std::string config_file) {
+    YAML::Node config = YAML::LoadFile(config_file);
+
+    bool sync_chain = config["sync_chain"].as<bool>();
+
+    return sync_chain;
+}
+
 // Wallet config
 
 bool load_wallet(Wallet& wallet, std::string config_file, std::string key_file){
