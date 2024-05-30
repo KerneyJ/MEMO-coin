@@ -26,7 +26,7 @@ class Metronome {
         std::mutex diff_mutex;
         std::mutex block_mutex;
         std::condition_variable block_timer;
-        BlockHeader last_block;
+        Block last_block;
         std::string blockchain;
         Server server;
         int active_validators;
@@ -34,7 +34,7 @@ class Metronome {
         void submit_empty_block();
         void sync_chain();
         int submit_block(Block block);
-        BlockHeader request_last_block();
+        Block request_last_block();
         void handle_block(zmq::socket_t &client, MessageBuffer data);
         void get_difficulty(zmq::socket_t &client, MessageBuffer data);
         void query_validators(zmq::socket_t &client, MessageBuffer data);

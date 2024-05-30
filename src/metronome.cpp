@@ -17,7 +17,7 @@ Metronome::Metronome(std::string _blockchain, bool sync_chain) {
     difficulty = MIN_DIFFICULTY;
     sleeping = true;
     last_block = request_last_block();
-    display_block_header(last_block);
+    display_block_header(last_block.header);
     active_validators = 0;
 }
 
@@ -37,12 +37,12 @@ void Metronome::start(std::string address) {
 
     while(true) {
 #ifdef DEBUG
-        printf("Waiting for block %d.\n", last_block.id + 1);
+        printf("[DEBUG] Waiting for block %d.\n", last_block.header.id + 1);
 #endif
         {
             std::unique_lock<std::mutex> lock(block_mutex);
             block_deadline = std::chrono::system_clock::time_point(
-                std::chrono::microseconds(last_block.timestamp) + std::chrono::seconds(BLOCK_TIME));
+                std::chrono::microseconds(last_block.header.timestamp) + std::chrono::seconds(BLOCK_TIME));
             status = std::cv_status::no_timeout;
 
             while(sleeping && status == std::cv_status::no_timeout)
@@ -55,7 +55,7 @@ void Metronome::start(std::string address) {
 
         if(status == std::cv_status::timeout) {
 #ifdef DEBUG
-            printf("Submitting empty block.\n");
+            printf("[DEBUG] Submitting empty block.\n");
 #endif
             submit_empty_block();
         }
@@ -68,10 +68,10 @@ void Metronome::submit_empty_block() {
     Block empty_block = {
         .header = {
             .hash = {},
-            .prev_hash = last_block.hash,
+            .prev_hash = last_block.header.hash,
             .difficulty = difficulty,
             .timestamp = get_timestamp(),
-            .id = last_block.id + 1,
+            .id = last_block.header.id + 1,
         },
         .transactions = std::vector<Transaction>()
     };
@@ -91,7 +91,7 @@ void Metronome::submit_empty_block() {
     // update last solved block state
     prev_solved_time = curr_solved_time;
     curr_solved_time = empty_block.header.timestamp;
-    last_block = empty_block.header;
+    last_block = empty_block;
 }
 
 void Metronome::sync_chain() {
@@ -175,12 +175,12 @@ int Metronome::submit_block(Block block) {
     return response.header.type == STATUS_GOOD ? 0 : -1;
 }
 
-BlockHeader Metronome::request_last_block() {
+Block Metronome::request_last_block() {
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
     requester.connect(blockchain);
 
     send_message(requester, QUERY_LAST_BLOCK);
-    auto response = recv_message<BlockHeader>(requester);
+    auto response = recv_message<Block>(requester);
 
     return response.data;
 }
@@ -190,11 +190,11 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     auto block = deserialize_payload<Block>(data);
 
     // TODO: validate block
-    if(block.header.id != last_block.id + 1) {
+    if(block.header.id != last_block.header.id + 1) {
         printf("[ERROR] Block not valid. Rejecting...\n");
 #ifdef DEBUG
-        display_block_header(last_block);
-        display_block_header(block.header);
+        display_block(last_block);
+        display_block(block);
 #endif
         send_message(client, STATUS_BAD);
         return;
@@ -209,7 +209,7 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     // Notify block timer a solution has been accepted
     prev_solved_time = curr_solved_time;
     curr_solved_time = block.header.timestamp;
-    last_block = block.header;
+    last_block = block;
     sleeping = false;
     block_timer.notify_one();
 
@@ -240,7 +240,7 @@ void Metronome::query_validators(zmq::socket_t &client, MessageBuffer data) {
 }
 
 void Metronome::current_problem(zmq::socket_t &client, MessageBuffer data) {
-    send_message(client, last_block.hash, STATUS_GOOD);
+    send_message(client, last_block.header.hash, STATUS_GOOD);
 }
 
 void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {

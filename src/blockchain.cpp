@@ -237,7 +237,7 @@ void BlockChain::last_block(zmq::socket_t &client, MessageBuffer data){
 #ifdef DEBUG
     display_block_header(b.header);
 #endif
-    send_message(client, b.header, STATUS_GOOD);
+    send_message(client, b, STATUS_GOOD);
 }
 
 void BlockChain::tx_status(zmq::socket_t &client, MessageBuffer data){
