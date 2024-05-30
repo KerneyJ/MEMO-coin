@@ -192,6 +192,10 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     // TODO: validate block
     if(block.header.id != last_block.id + 1) {
         printf("[ERROR] Block not valid. Rejecting...\n");
+#ifdef DEBUG
+        display_block_header(last_block);
+        display_block_header(block.header);
+#endif
         send_message(client, STATUS_BAD);
         return;
     }
