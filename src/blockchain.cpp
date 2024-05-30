@@ -162,11 +162,15 @@ int BlockChain::submit_block_peer(Block b, std::string peer_addr) {
     zmq::context_t& context = server.get_context();
     zmq::socket_t peer_req(context, ZMQ_REQ);
     zmq::socket_t peer_metro_req(context, ZMQ_REQ);
+
+    /* connect timeout to 2000ms */
+    peer_req.set(zmq::sockopt::connect_timeout, 2000);
+    peer_metro_req.set(zmq::sockopt::connect_timeout, 2000);
 #ifdef DEBUG
     printf("[DEBUG] Getting metronme address from peer %s\n", peer_addr.c_str());
 #endif
 
-    peer_req.connect(peer_addr);
+    peer_req.connect(peer_addr); // FIXME figure out what to do when timeout
     send_message(peer_req, GET_METRO_ADDR);
     auto res1 = recv_message<std::string>(peer_req);
     std::string metro_addr = res1.data;
@@ -174,7 +178,7 @@ int BlockChain::submit_block_peer(Block b, std::string peer_addr) {
 #ifdef DEBUG
     printf("[DEBUG] received peer metronome address of %s\n", metro_addr.c_str());
 #endif
-    peer_metro_req.connect(metro_addr);
+    peer_metro_req.connect(metro_addr); // FIXME figure out what to do when timeout
     send_message(peer_metro_req, b, SUBMIT_BLOCK);
     auto res2 = recv_message<NullMessage>(peer_metro_req);
 
@@ -206,19 +210,19 @@ void BlockChain::submit_block(zmq::socket_t &client, MessageBuffer data) {
     send_message(requester, block, CONFIRM_BLOCK);
     auto response = recv_message<NullMessage>(requester);
 
-    /*for(std::string peer_addr : this->peers){
-        / * TODO need to error handle
+    for(std::string peer_addr : this->peers){
+        /* TODO need to error handle
          * Make a map of peers -> queues
          * each thread will send blocks to the peer they are mapped to
          * we will put blocks on a queue in this loop
          * TODO make functions for adding new peers
          * TODO make function for deleting a peer
-         * /
+         */
         this->peer_threads->queue_job( [this, peer_addr, block] {
             printf("Sending block to peer %s\n", peer_addr.c_str());
             submit_block_peer(block, peer_addr);
         });
-    }*/
+    }
 }
 
 void BlockChain::get_balance(zmq::socket_t &client, MessageBuffer data) {
