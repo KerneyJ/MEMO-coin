@@ -189,19 +189,43 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(block_mutex);
     auto block = deserialize_payload<Block>(data);
 
-    // TODO: validate block
+    /* TODO validate block
+     * TODO check other conditions
+     * - if block is empty immediate reject
+     * - if last block is empty and block is not empty then replace block with last block
+     * - if the last block id == block id then find some way to compare and deterministically choose a block (maybe create a signature and cmopare and get lowest signature)
+     */
+    if(block.transactions.empty()){
+#ifdef DEBUG
+        printf("[DEBUG] received empty block, immediate reject");
+#endif
+        return;
+    }
+    else if(block.header.id == last_block.header.id && last_block.transactions.empty())
+        // replace last_block with block
+    else if(block.header.id == last_block.header.id && !last_block.transactions.empty()){
+        // find a way to deterministically choose the same block
+    }
+    else if(block.header.id == last_block.header.id + 1){
+        // just submit the block
+        if(submit_block(block) < 0) {
+            printf("[ERROR] Block rejected from blockchain.\n");
+            send_message(client, STATUS_BAD);
+            return;
+        }
+    }
+    else{
+        printf("[ERROR] block id not equal to last block id or last bloc id + 1\n");
+        printf("\t\t last block id: %lu; received block id: %lu\n", last_block.header.id, block.header.id);
+    }
+
     if(block.header.id != last_block.header.id + 1) {
         printf("[ERROR] Block not valid. Rejecting...\n");
 #ifdef DEBUG
         display_block(last_block);
         display_block(block);
+        printf("Empty: %b\n", last_block.transactions.empty());
 #endif
-        send_message(client, STATUS_BAD);
-        return;
-    }
-
-    if(submit_block(block) < 0) {
-        printf("[ERROR] Block rejected from blockchain.\n");
         send_message(client, STATUS_BAD);
         return;
     }
