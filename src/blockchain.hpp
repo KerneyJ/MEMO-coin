@@ -15,6 +15,7 @@ class BlockChain {
     private:
         Server server;
         ThreadPool *peer_threads;
+        bool _sync_chain;
         std::string config_file;
         std::string txpool_address;
         std::string metro_address;
@@ -25,7 +26,6 @@ class BlockChain {
         std::mutex writemutex;
         std::unordered_map<Ed25519Key, uint32_t, Ed25519KeyHash> ledger;
         YAML::Node stored_chain;
-        bool wait;
         void load_genesis();
         void sync_bal(Block b);
         int add_block(Block b);
@@ -48,6 +48,16 @@ class BlockChain {
          */
         void load_file(std::string file_name);
         void write_block(Block b);
+
+        /* Metronome stuff */
+        std::thread metronome;
+        bool sleeping;
+        uint64_t prev_solved_time;
+        uint64_t curr_solved_time;
+        uint32_t difficulty;
+        std::mutex diffmutex;
+        std::condition_variable block_timer;
+        Block last_block;
     public:
         BlockChain(std::string txpaddr, std::string metroaddr, std::string config_file);
         void start(std::string address);

@@ -12,11 +12,9 @@
 #include "messages.hpp"
 #include "config.hpp"
 
-BlockChain::BlockChain(std::string txpaddr, std::string metroaddr, std::string config_file) {
+BlockChain::BlockChain(std::string txpaddr, std::string config_file) {
     this->txpool_address = txpaddr;
-    this->metro_address = metroaddr;
     this->config_file = config_file;
-    this->wait = true;
     YAML::Node config = YAML::LoadFile(this->config_file);
     this->file_name = config["blockchain"]["file"].as<std::string>();
     if(!this->file_name.empty())
