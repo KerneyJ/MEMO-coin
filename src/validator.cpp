@@ -135,7 +135,7 @@ std::vector<Transaction> Validator::request_txs() {
 
 bool Validator::submit_block(Block block) {
     zmq::socket_t requester(zmq_ctx, ZMQ_REQ);
-    requester.connect(metronome);
+    requester.connect(blockchain);
 
     send_message(requester, block, SUBMIT_BLOCK);
     auto response = recv_message<NullMessage>(requester);

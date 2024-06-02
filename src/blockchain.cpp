@@ -160,29 +160,19 @@ int BlockChain::add_block(Block b){
 
 int BlockChain::submit_block_peer(Block b, std::string peer_addr) {
     zmq::context_t& context = server.get_context();
-    zmq::socket_t peer_req(context, ZMQ_REQ);
-    zmq::socket_t peer_metro_req(context, ZMQ_REQ);
+    zmq::socket_t requester(context, ZMQ_REQ);
 
     /* connect timeout to 2000ms */
-    peer_req.set(zmq::sockopt::connect_timeout, 2000);
-    peer_metro_req.set(zmq::sockopt::connect_timeout, 2000);
-#ifdef DEBUG
-    printf("[DEBUG] Getting metronme address from peer %s\n", peer_addr.c_str());
-#endif
-
-    peer_req.connect(peer_addr); // FIXME figure out what to do when timeout
-    send_message(peer_req, GET_METRO_ADDR);
-    auto res1 = recv_message<std::string>(peer_req);
-    std::string metro_addr = res1.data;
+    requester.set(zmq::sockopt::connect_timeout, 2000);
+    requester.connect(peer_addr); /* FIXME figure out what to do when timeout */
 
 #ifdef DEBUG
     printf("[DEBUG] received peer metronome address of %s\n", metro_addr.c_str());
 #endif
-    peer_metro_req.connect(metro_addr); // FIXME figure out what to do when timeout
-    send_message(peer_metro_req, b, SUBMIT_BLOCK);
-    auto res2 = recv_message<NullMessage>(peer_metro_req);
 
-    return res2.header.type == STATUS_GOOD;
+    send_message(requester, b, SUBMIT_BLOCK);
+    auto response = recv_message<NullMessage>(requester);
+    return response.header.type == STATUS_GOOD;
 }
 
 void BlockChain::submit_block(zmq::socket_t &client, MessageBuffer data) {
