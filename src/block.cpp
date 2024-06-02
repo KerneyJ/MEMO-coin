@@ -1,5 +1,6 @@
 #include "block.hpp"
 #include "keys.hpp"
+#include "transaction.hpp"
 #include <cstring>
 
 void display_block_header(BlockHeader header) {
@@ -25,4 +26,16 @@ int cmp_b3hash(Blake3Hash h1, Blake3Hash h2) {
     std::copy(std::begin(h1), std::end(h1), std::begin(h1a));
     std::copy(std::begin(h2), std::end(h2), std::begin(h2a));
     return std::memcmp(h1a, h2a, BLAKE3_OUT_LEN);
+}
+
+bool verify_block(Block b){
+    /* iteratively verify each transaction signature in the tx vector*/
+    for(Transaction tx : b.transactions){
+        std::string src_key = base58_encode_key(tx.src);
+        if(src_key == std::string("11111111111111111111111111111169") || src_key == std::string("11111111111111111111111111111111"))
+            continue;
+        if(!verify_transaction_signature(tx))
+            return false;
+    }
+    return true;
 }
