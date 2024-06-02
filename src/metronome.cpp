@@ -201,7 +201,7 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
 #endif
         return;
     }
-    else if(block.header.id == last_block.header.id && last_block.transactions.empty())
+    else if(block.header.id == last_block.header.id && last_block.transactions.empty());
         // replace last_block with block
     else if(block.header.id == last_block.header.id && !last_block.transactions.empty()){
         // find a way to deterministically choose the same block
