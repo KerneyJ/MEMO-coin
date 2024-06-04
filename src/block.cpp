@@ -1,6 +1,7 @@
 #include "block.hpp"
 #include "keys.hpp"
 #include "transaction.hpp"
+#include "utils.hpp"
 #include <cstring>
 
 void display_block_header(BlockHeader header) {
@@ -28,7 +29,6 @@ int cmp_b3hash(Blake3Hash h1, Blake3Hash h2) {
     return std::memcmp(h1a, h2a, BLAKE3_OUT_LEN);
 }
 
-
 bool verify_transactions(Block b){
     /* iteratively verify each transaction signature in the tx vector*/
     for(Transaction tx : b.transactions){
@@ -41,12 +41,44 @@ bool verify_transactions(Block b){
     return true;
 }
 
+bool verify_solution_pom(HashInput input, Blake3Hash curr_hash, Blake3Hash prev_hash, uint32_t difficulty) {
+    Blake3Hash target, result;
+    blake3_hasher hasher;
 
-/* TODO right now using b.header.difficulty, anyone can set arbtitrary difficulty so maybe change this? */
-bool verify_block_pom(Block b, ProofOfMemory pom){
-    return verify_transactions(b) && pom.verify_solution(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+    // Get target hash to match prefix against
+    blake3_hasher_init(&hasher);
+    blake3_hasher_update(&hasher, prev_hash.data(), prev_hash.size());
+    blake3_hasher_finalize(&hasher, target.data(), target.size());
+
+    // Check hash input result
+    blake3_hasher_init(&hasher);
+    blake3_hasher_update(&hasher, &input, sizeof(HashInput));
+    blake3_hasher_finalize(&hasher, result.data(), result.size());
+
+    return check_prefix(result, target, difficulty);
 }
 
-bool verify_block_pow(Block b, ProofOfWork pow){
-    return verify_transactions(b) && pow.verify_solution(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+bool verify_solution_pow(HashInput input, Blake3Hash curr_hash, Blake3Hash prev_hash, uint32_t difficulty) {
+    Blake3Hash result;
+    blake3_hasher hasher;
+
+    blake3_hasher_init(&hasher);
+    blake3_hasher_update(&hasher, prev_hash.data(), prev_hash.size());
+    blake3_hasher_update(&hasher, curr_hash.data(), curr_hash.size());
+    blake3_hasher_finalize(&hasher, result.data(), result.size());
+
+    return check_leading_zeros(result, difficulty);
+}
+
+/* TODO right now using b.header.difficulty, anyone can set arbtitrary difficulty so maybe change this? */
+bool verify_block(Block b, std::string consensus_type){
+    bool vftx = verify_transactions(b);
+    if(consensus_type == "pow")
+        return vftx && verify_solution_pow(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+    else if(consensus_type == "pom")
+        return vftx && verify_solution_pom(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+    else{
+        printf("[ERROR] Invalid consensus type, can't verify block\n");
+        return false;
+    }
 }

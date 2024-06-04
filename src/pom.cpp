@@ -18,25 +18,6 @@
 #include "utils.hpp"
 #include "pom.hpp"
 
-static bool check_prefix(const Blake3Hash &result, const Blake3Hash &target, uint32_t difficulty) {
-    int i, j, correct = 0;
-
-    if(difficulty > result.size() * 8)
-        throw std::runtime_error("Bad difficulty.");
-
-    for(i = 0; i < result.size(); i++) {
-        for(j = 0; j < 8; j++) {
-            if((result[i] >> j & 1) == (target[i] >> j & 1)){
-                correct++;
-            } else {
-                return correct >= difficulty;
-            }
-        }
-    }
-
-    return correct >= difficulty;
-}
-
 static int prefix_binary_search(const std::vector<Blake3Hash> &hashes, const Blake3Hash& target, int difficulty)
 {
     int l = 0, r = hashes.size() - 1;

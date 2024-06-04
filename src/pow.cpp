@@ -16,25 +16,6 @@
 #include "pow.hpp"
 #include "utils.hpp"
 
-static bool check_leading_zeros(const Blake3Hash &result, uint32_t difficulty) {
-    int i, j, correct = 0;
-
-    if(difficulty > result.size() * 8)
-        throw std::runtime_error("Bad difficulty.");
-
-    for(i = 0; i < result.size(); i++) {
-        for(j = 0; j < 8; j++) {
-            if(result[i] >> j & 1) {
-                return correct >= difficulty;
-            } else {
-                correct++;
-            }
-        }
-    }
-
-    return correct >= difficulty;
-}
-
 std::pair<HashInput, Blake3Hash> ProofOfWork::solve_hash(Blake3Hash prev_hash, uint32_t difficulty, uint64_t end_time) {
     uint64_t nonce = 0;
     uint8_t* nonce_buf;
