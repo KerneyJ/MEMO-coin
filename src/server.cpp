@@ -60,7 +60,7 @@ zmq::context_t& Server::get_context() {
 
 Server::Server() {
     interrupt = 0;
-    threads = new ThreadPool(2);
+    threads = new ThreadPool();
 }
 
 Server::~Server() {
