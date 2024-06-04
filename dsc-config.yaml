@@ -1,4 +1,5 @@
 sync_chain: false
+consensus: pow
 wallet:
   public_key: AKb6B2s59CSyig1UmuR5xWxVEwK1aRADHMkwkfgFgNby
   nonce: 386350
@@ -9,7 +10,6 @@ validator:
   threads: 2
   address: tcp://127.0.0.1:10002
   memory: 1KB
-  consensus: pow
   fingerprint: NpHH38Se5Ax6AYuiorU8QA
 metronome:
   threads: 2

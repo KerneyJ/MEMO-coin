@@ -1,3 +1,4 @@
+consensus: pow
 sync_chain: true
 tx_pool:
   threads: 2

@@ -96,7 +96,7 @@ std::string get_validator_threads(std::string config_file) {
 
 std::string get_consensus_method(std::string config_file) {
     YAML::Node config = YAML::LoadFile(config_file);
-    return config["validator"]["consensus"].as<std::string>();
+    return config["consensus"].as<std::string>();
 }
 
 uint32_t get_validator_memory(std::string config_file) {
