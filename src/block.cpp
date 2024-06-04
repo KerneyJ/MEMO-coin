@@ -28,7 +28,8 @@ int cmp_b3hash(Blake3Hash h1, Blake3Hash h2) {
     return std::memcmp(h1a, h2a, BLAKE3_OUT_LEN);
 }
 
-bool verify_block(Block b){
+
+bool verify_transactions(Block b){
     /* iteratively verify each transaction signature in the tx vector*/
     for(Transaction tx : b.transactions){
         std::string src_key = base58_encode_key(tx.src);
@@ -38,4 +39,14 @@ bool verify_block(Block b){
             return false;
     }
     return true;
+}
+
+
+/* TODO right now using b.header.difficulty, anyone can set arbtitrary difficulty so maybe change this? */
+bool verify_block_pom(Block b, ProofOfMemory pom){
+    return verify_transactions(b) && pom.verify_solution(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+}
+
+bool verify_block_pow(Block b, ProofOfWork pow){
+    return verify_transactions(b) && pow.verify_solution(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
 }

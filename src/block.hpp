@@ -1,5 +1,7 @@
 #include "transaction.hpp"
 #include "consensus.hpp"
+#include "pom.hpp"
+#include "pow.hpp"
 #include "defs.hpp"
 #include <vector>
 
@@ -30,4 +32,5 @@ struct Block {
 void display_block_header(BlockHeader header);
 void display_block(Block header);
 int cmp_b3hash(Blake3Hash h1, Blake3Hash h2);
-bool verify_block(Block b);
+bool verify_block_pom(Block b, ProofOfMemory pom);
+bool verify_block_pow(Block b, ProofOfWork pow);
