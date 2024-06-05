@@ -35,6 +35,7 @@ enum MessageType {
     CURRENT_PROBLEM,
     GET_METRO_ADDR,
     GET_PEER_ADDRS,
+    REPLACE_BLOCK,
 };
 
 struct MessageHeader {

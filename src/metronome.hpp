@@ -19,7 +19,6 @@
 class Metronome {
     private:
         bool sleeping;
-        bool _sync_chain;
         uint64_t prev_solved_time;
         uint64_t curr_solved_time;
         uint32_t difficulty;
@@ -28,11 +27,11 @@ class Metronome {
         std::condition_variable block_timer;
         Block last_block;
         std::string blockchain;
+        std::string consensus_type;
         Server server;
         int active_validators;
         void update_difficulty(bool timed_out);
         void submit_empty_block();
-        void sync_chain();
         int submit_block(Block block);
         Block request_last_block();
         void handle_block(zmq::socket_t &client, MessageBuffer data);
@@ -42,6 +41,6 @@ class Metronome {
         void current_problem(zmq::socket_t &client, MessageBuffer data);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
     public:
-        Metronome(std::string, bool);
+        Metronome(std::string, std::string);
         void start(std::string address);
 };

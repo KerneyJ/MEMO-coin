@@ -12,9 +12,10 @@
 #include "messages.hpp"
 #include "config.hpp"
 
-BlockChain::BlockChain(std::string txpaddr, std::string metroaddr, std::string config_file) {
+BlockChain::BlockChain(std::string txpaddr, std::string metroaddr, std::string consensus_type, std::string config_file) {
     this->txpool_address = txpaddr;
     this->metro_address = metroaddr;
+    this->consensus_type = consensus_type;
     this->config_file = config_file;
     this->wait = true;
     YAML::Node config = YAML::LoadFile(this->config_file);
@@ -130,24 +131,42 @@ void BlockChain::write_block(Block b){
 
 int BlockChain::add_block(Block b){
     const std::lock_guard<std::mutex> lock(blockmutex);
-    Block last_block = blocks.back();
-    // compare the prev_hash of received block to hash of last block
-    if(cmp_b3hash(last_block.header.hash, b.header.prev_hash)){
-        printf("[ERROR] Received a block who's prev hash is not the hash of the last stored block\n");
+    zmq::context_t &context = server.get_context();
+    zmq::socket_t requester(context, ZMQ_REQ);
+    requester.connect(metro_address);
+    send_message(requester, CURRENT_PROBLEM);
+    auto res1 = recv_message<Blake3Hash>(requester);
+    Blake3Hash problem = res1.data;
 #ifdef DEBUG
-        printf("[ERROR] Displaying block headers, most recent accepted block first, received block second\n");
-        display_block_header(last_block.header);
-        display_block_header(b.header);
+    printf("[DEBUG] Received a problem from metronome %s\n", base58_encode_key(problem).c_str());
 #endif
-        exit(1);
+    // compare the prev_hash of received block to hash of last block
+    if(cmp_b3hash(problem, b.header.prev_hash)){
+        /* TODO in future maybe print these */
+        printf("[WARN] Received a block who's prev hash is not the current problem\n");
+        return -1;
     }
-    /* TODO ensure block is valid
-     * first send the block to validator so it can be verified
-     * second, verify each transaction
-     */
-    /* TODO need to find a consistent way to chose a block
-     * find some way to compare Blake3hash
-     */
+    if(!verify_block(b, consensus_type)){
+        printf("[WARN] verify_block returned false, rejecting block\n");
+        return -1;
+    }
+#ifdef DEBUG
+    printf("[DEBUG] Block vetted\n");
+#endif
+    send_message(requester, b, SUBMIT_BLOCK);
+    auto res2 = recv_message<NullMessage>(requester);
+    if(res2.header.type == STATUS_BAD){
+        printf("[ERROR] received status bad from metronome\n");
+        return -1;
+    }
+    else if(res2.header.type == REPLACE_BLOCK){
+        /* happens when empty block and non empty block have same ID */
+#ifdef DEBUG
+        printf("[DEBUG] Received replace block message from metronome\n");
+#endif
+        blocks.pop_back();
+    }
+
     blocks.push_back(b);
     write_block(b);
     sync_bal(b);
@@ -166,10 +185,6 @@ int BlockChain::submit_block_peer(Block b, std::string peer_addr) {
     requester.set(zmq::sockopt::connect_timeout, 2000);
     requester.connect(peer_addr); /* FIXME figure out what to do when timeout */
 
-#ifdef DEBUG
-    printf("[DEBUG] received peer metronome address of %s\n", metro_addr.c_str());
-#endif
-
     send_message(requester, b, SUBMIT_BLOCK);
     auto response = recv_message<NullMessage>(requester);
     return response.header.type == STATUS_GOOD;
@@ -177,14 +192,14 @@ int BlockChain::submit_block_peer(Block b, std::string peer_addr) {
 
 void BlockChain::submit_block(zmq::socket_t &client, MessageBuffer data) {
 #ifdef DEBUG
-    printf("Received block\n");
+    printf("[DEBUG] Received block\n");
 #endif
-    /* TODO need to ensure that the client is our metronome */
 
     auto block = deserialize_payload<Block>(data);
     if(add_block(block) < 0){
-        printf("[ERROR] add_block failed in function submit_block\n");
+        printf("[WARN] add_block failed in function submit_block\n");
         send_message(client, STATUS_BAD);
+        exit(1);
         return;
     }
 

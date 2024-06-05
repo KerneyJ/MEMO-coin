@@ -11,9 +11,9 @@
 #include "transaction.hpp"
 #include "utils.hpp"
 
-Metronome::Metronome(std::string _blockchain, bool sync_chain) {
+Metronome::Metronome(std::string _blockchain, std::string _consensus_type) {
     blockchain = _blockchain;
-    _sync_chain = sync_chain;
+    consensus_type = _consensus_type;
     difficulty = MIN_DIFFICULTY;
     sleeping = true;
     last_block = request_last_block();
@@ -28,10 +28,6 @@ void Metronome::start(std::string address) {
     if(server.start(address, fp, false) < 0)
         throw std::runtime_error("Server could not bind.");
 
-    if(_sync_chain){
-        sync_chain();
-        last_block = request_last_block();
-    }
     std::cv_status status;
     std::chrono::system_clock::time_point block_deadline;
 
@@ -63,7 +59,7 @@ void Metronome::start(std::string address) {
 }
 
 void Metronome::submit_empty_block() {
-    std::unique_lock<std::mutex> lock(block_mutex);
+    /* std::unique_lock<std::mutex> lock(block_mutex); */
 
     Block empty_block = {
         .header = {
@@ -89,27 +85,29 @@ void Metronome::submit_empty_block() {
     }
 
     // update last solved block state
+    block_mutex.lock();
     prev_solved_time = curr_solved_time;
     curr_solved_time = empty_block.header.timestamp;
     last_block = empty_block;
+    block_mutex.unlock();
 }
-
+/*
 void Metronome::sync_chain() {
     zmq::context_t& context = server.get_context();
     zmq::socket_t blockchain_req(context, ZMQ_REQ);
     zmq::socket_t peer_req(context, ZMQ_REQ);
 
-    /* get vector of peers from blockchain node
+    // * get vector of peers from blockchain node
      * FIXME if there are multiple blockchain nodes
      * then we need to pick one from the vector
-     */
+     * //
     blockchain_req.connect(blockchain);
     send_message(blockchain_req, GET_PEER_ADDRS);
     auto res1 = recv_message<std::vector<std::string>>(blockchain_req);
     std::vector<std::string> peers = res1.data;
-    std::string peer = peers[0]; /* TODO probably get random peer in future */
+    std::string peer = peers[0]; // * TODO probably get random peer in future * //
 
-    /* get vector of blocks from blockchain node */
+    // * get vector of blocks from blockchain node * //
     peer_req.connect(peer);
     send_message(peer_req, SYNC_CHAIN);
     auto res2 = recv_message<std::vector<Block>>(peer_req);
@@ -121,7 +119,7 @@ void Metronome::sync_chain() {
     for(int i = 0; i < blocks.size(); i++) {
         Block block = blocks[i];
         if(block.header.id == 0)
-            continue; /* everyone should already have genesis block(block with id 0) */
+            continue; // * everyone should already have genesis block(block with id 0) * //
 #ifdef DEBUG
         printf("[DEBUG] Attempting to submit block\n");
         display_block_header(block.header);
@@ -136,7 +134,7 @@ void Metronome::sync_chain() {
 #endif
     }
 }
-
+*/
 void Metronome::update_difficulty(bool timed_out) {
     int solved_time = curr_solved_time - prev_solved_time;
 
@@ -186,58 +184,63 @@ Block Metronome::request_last_block() {
 }
 
 void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
-    std::unique_lock<std::mutex> lock(block_mutex);
+    /* std::unique_lock<std::mutex> lock(block_mutex); */
     auto block = deserialize_payload<Block>(data);
 
-    /* TODO validate block
-     * TODO check other conditions
+    /* TODO check other conditions
      * - if block is empty immediate reject
      * - if last block is empty and block is not empty then replace block with last block
      * - if the last block id == block id then find some way to compare and deterministically choose a block (maybe create a signature and cmopare and get lowest signature)
      */
-    if(block.transactions.empty()){
-#ifdef DEBUG
-        printf("[DEBUG] received empty block, immediate reject");
-#endif
-        return;
+    if(!verify_block(block, consensus_type)){
+        printf("[WARN] verify_block returned false, rejecting block\n");
+        send_message(client, STATUS_BAD);
     }
-    else if(block.header.id == last_block.header.id && last_block.transactions.empty());
-        // replace last_block with block
-    else if(block.header.id == last_block.header.id && !last_block.transactions.empty()){
-        // find a way to deterministically choose the same block
+    else if(block.transactions.empty()){
+#ifdef DEBUG
+        printf("[DEBUG] received empty block\n");
+#endif
+        send_message(client, STATUS_GOOD);
+    }
+    else if(block.header.id == last_block.header.id && last_block.transactions.empty()){
+        /* replace last_block with block */
+#ifdef DEBUG
+        printf("[DEBUG] Received a block that has same id as last block\n");
+#endif
+        if(last_block.transactions.empty()){
+#ifdef DEBUG
+            printf("[DEBUG] Last block is empty and received non-empty block with same ID, sending replace block message\n");
+#endif
+            send_message(client, REPLACE_BLOCK);
+        }
+        else{
+            /* TODO find a way to deterministically choose the same block right now sending status bad
+             * TODO Also, since, the last block is not empty we need a way to role back all of those transaction */
+#ifdef DEBUG
+            printf("[DEBUG] TODO got blocks of equal id\n");
+#endif
+            send_message(client, STATUS_BAD);
+        }
     }
     else if(block.header.id == last_block.header.id + 1){
-        // just submit the block
-        if(submit_block(block) < 0) {
-            printf("[ERROR] Block rejected from blockchain.\n");
-            send_message(client, STATUS_BAD);
-            return;
-        }
+        /* just submit the block */
+        send_message(client, STATUS_GOOD);
     }
     else{
         printf("[ERROR] block id not equal to last block id or last bloc id + 1\n");
         printf("\t\t last block id: %lu; received block id: %lu\n", last_block.header.id, block.header.id);
-    }
-
-    if(block.header.id != last_block.header.id + 1) {
-        printf("[ERROR] Block not valid. Rejecting...\n");
-#ifdef DEBUG
-        display_block(last_block);
-        display_block(block);
-        printf("Empty: %b\n", last_block.transactions.empty());
-#endif
         send_message(client, STATUS_BAD);
-        return;
     }
 
-    // Notify block timer a solution has been accepted
+    /* Notify block timer a solution has been accepted */
+    block_mutex.lock();
     prev_solved_time = curr_solved_time;
     curr_solved_time = block.header.timestamp;
     last_block = block;
     sleeping = false;
     block_timer.notify_one();
-
-    send_message(client, STATUS_GOOD);
+    block_mutex.unlock();
+    /* send_message(client, STATUS_GOOD); */
 }
 
 void Metronome::get_difficulty(zmq::socket_t &client, MessageBuffer data) {

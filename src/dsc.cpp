@@ -236,8 +236,9 @@ int run_metronome(std::vector<std::string> args) {
     std::string config_file = args[0];
     std::string blockchain = get_blockchain_address(config_file);
     std::string address = get_metronome_address(config_file);
+    std::string consensus_type = get_consensus_method(config_file);
     bool sync_chain = get_sync_chain(config_file);
-    Metronome metronome = Metronome(blockchain, sync_chain);
+    Metronome metronome = Metronome(blockchain, consensus_type);
     metronome.start(address);
     return 0;
 }
@@ -255,7 +256,8 @@ int run_blockchain(std::vector<std::string> args) {
     std::string address = get_blockchain_address(config_file);
     std::string txpaddr = get_tx_pool_address(config_file);
     std::string metroaddr = get_metronome_address(config_file);
-    BlockChain blockchain = BlockChain(txpaddr, metroaddr, config_file);
+    std::string consensus_type = get_consensus_method(config_file);
+    BlockChain blockchain = BlockChain(txpaddr, metroaddr, consensus_type, config_file);
     blockchain.start(address);
     return 0;
 }

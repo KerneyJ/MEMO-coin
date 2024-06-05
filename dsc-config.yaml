@@ -17,6 +17,6 @@ metronome:
 blockchain:
   threads: 2
   address: tcp://127.0.0.1:10004
-  file: "test_blockchain.yaml"
+  file: ""
   peers:
     - address: tcp://127.0.0.1:10014

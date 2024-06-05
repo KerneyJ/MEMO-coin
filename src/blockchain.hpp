@@ -19,6 +19,7 @@ class BlockChain {
         std::string txpool_address;
         std::string metro_address;
         std::string file_name;
+        std::string consensus_type;
         std::vector<Block> blocks;
         std::vector<std::string> peers;
         std::mutex blockmutex;
@@ -49,6 +50,6 @@ class BlockChain {
         void load_file(std::string file_name);
         void write_block(Block b);
     public:
-        BlockChain(std::string txpaddr, std::string metroaddr, std::string config_file);
+        BlockChain(std::string txpaddr, std::string metroaddr, std::string consensus_type, std::string config_file);
         void start(std::string address);
 };
