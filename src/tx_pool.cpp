@@ -16,7 +16,7 @@
 #include "tx_pool.hpp"
 
 TxPool::TxPool(std::string _blockchain) {
-    blockchain = _blockchain;
+    blockchains.push_back(_blockchain);
 }
 
 void TxPool::start(std::string address) {
@@ -110,7 +110,7 @@ void TxPool::query_tx_status(zmq::socket_t &client, MessageBuffer data) {
     }
 
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
-    requester.connect(blockchain);
+    requester.connect(blockchains[0]);
 
     send_message(requester, tx_key, QUERY_TX_STATUS);
     auto response = recv_message<Transaction::Status>(requester);
@@ -125,6 +125,11 @@ void TxPool::query_tx_count(zmq::socket_t &client, MessageBuffer data) {
     send_message(client, tx_count, STATUS_GOOD);
 }
 
+void TxPool::register_blockchain(zmq::socket_t &client, MessageBuffer data) {
+    auto blockchain_addr = deserialize_payload<std::string>(data);
+    blockchains.push_back(blockchain_addr);
+    send_message(client, STATUS_GOOD);
+}
 
 void TxPool::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
     switch (request.header.type) {
@@ -138,6 +143,8 @@ void TxPool::request_handler(zmq::socket_t &client, Message<MessageBuffer> reque
             return query_tx_count(client, request.data);
         case CONFIRM_BLOCK:
             return confirm_transactions(client, request.data);
+        case REGISTER_BLOCKCHAIN:
+            return register_blockchain(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

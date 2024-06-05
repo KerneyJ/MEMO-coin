@@ -12,7 +12,7 @@
 #include "utils.hpp"
 
 Metronome::Metronome(std::string _blockchain, std::string _consensus_type) {
-    blockchain = _blockchain;
+    blockchains.push_back(_blockchain);
     consensus_type = _consensus_type;
     difficulty = MIN_DIFFICULTY;
     sleeping = true;
@@ -165,17 +165,19 @@ void Metronome::update_difficulty(bool timed_out) {
 }
 
 int Metronome::submit_block(Block block) {
-    zmq::socket_t requester(server.get_context(), ZMQ_REQ);
-    requester.connect(blockchain);
-    send_message(requester, block, SUBMIT_BLOCK);
-    auto response = recv_message<NullMessage>(requester);
-
-    return response.header.type == STATUS_GOOD ? 0 : -1;
+    for(std::string blockchain : blockchains) {
+        zmq::socket_t requester(server.get_context(), ZMQ_REQ);
+        requester.connect(blockchain);
+        send_message(requester, block, SUBMIT_BLOCK);
+        auto response = recv_message<NullMessage>(requester);
+    }
+    return 0; /* TODO add debug stuff */
+    /* return response.header.type == STATUS_GOOD ? 0 : -1; */
 }
 
 Block Metronome::request_last_block() {
     zmq::socket_t requester(server.get_context(), ZMQ_REQ);
-    requester.connect(blockchain);
+    requester.connect(blockchains[0]);
 
     send_message(requester, QUERY_LAST_BLOCK);
     auto response = recv_message<Block>(requester);
@@ -268,6 +270,12 @@ void Metronome::current_problem(zmq::socket_t &client, MessageBuffer data) {
     send_message(client, last_block.header.hash, STATUS_GOOD);
 }
 
+void Metronome::register_blockchain(zmq::socket_t &client, MessageBuffer data) {
+    auto blockchain_addr = deserialize_payload<std::string>(data);
+    blockchains.push_back(blockchain_addr);
+    send_message(client, STATUS_GOOD);
+}
+
 void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> request) {
     switch (request.header.type) {
         case SUBMIT_BLOCK:
@@ -280,6 +288,8 @@ void Metronome::request_handler(zmq::socket_t &client, Message<MessageBuffer> re
             return query_validators(client, request.data);
         case CURRENT_PROBLEM: // TODO maybe delete this function(different way of submitting blocks)
             return current_problem(client, request.data);
+        case REGISTER_BLOCKCHAIN:
+            return register_blockchain(client, request.data);
         default:
             throw std::runtime_error("Unknown message type.");
     }

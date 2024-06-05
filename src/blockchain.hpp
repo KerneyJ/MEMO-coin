@@ -30,6 +30,8 @@ class BlockChain {
         bool wait;
         void load_genesis();
         void sync_chain();
+        void register_txpool(std::string address);
+        void register_metronome(std::string address);
         void sync_bal(Block b);
         int add_block(Block b, zmq::socket_t &client);
         int add_block(Block b);

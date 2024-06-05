@@ -27,7 +27,7 @@ typedef std::unordered_set<Transaction, TxHash> TransactionSet;
 
 class TxPool {
     private:
-        std::string blockchain;
+        std::vector<std::string> blockchains;
         Server server;
         std::deque<Transaction> submitted_queue;
         std::deque<Transaction> unconfirmed_queue;
@@ -40,6 +40,7 @@ class TxPool {
         void query_tx_status(zmq::socket_t &client, MessageBuffer request);
         void confirm_block(zmq::socket_t &client, MessageBuffer request);
         void query_tx_count(zmq::socket_t &client, MessageBuffer request);
+        void register_blockchain(zmq::socket_t &client, MessageBuffer request);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
     public:
         TxPool(std::string blockchain);

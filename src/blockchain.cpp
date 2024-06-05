@@ -73,6 +73,8 @@ void BlockChain::start(std::string address) {
     auto fp = std::bind(&BlockChain::request_handler, this, std::placeholders::_1, std::placeholders::_2);
     if(server.start(address, fp, false) < 0)
         throw std::runtime_error("server could not bind.");
+    register_txpool(address);
+    register_metronome(address);
     if(_sync_chain)
         sync_chain();
     server.proxy_thread.join();
@@ -359,6 +361,22 @@ void BlockChain::sync_chain() {
         printf("[DEBUG] Successfully submited block\n");
 #endif
     }
+}
+
+void BlockChain::register_txpool(std::string address) {
+    zmq::context_t &context = server.get_context();
+    zmq::socket_t requester(context, ZMQ_REQ);
+    requester.connect(txpool_address);
+    send_message(requester, address, REGISTER_BLOCKCHAIN);
+    auto reponse = recv_message<NullMessage>(requester);
+}
+
+void BlockChain::register_metronome(std::string address) {
+    zmq::context_t &context = server.get_context();
+    zmq::socket_t requester(context, ZMQ_REQ);
+    requester.connect(metro_address);
+    send_message(requester, address, REGISTER_BLOCKCHAIN);
+    auto reponse = recv_message<NullMessage>(requester);
 }
 
 //Replies to sender with the number of unique addresses on the blockchain,
