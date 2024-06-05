@@ -33,7 +33,7 @@ void BlockChain::start(std::string address) {
     this->load_genesis();
 
     // Check if we need to read from a file
-    if(!this->file_name.empty()){
+    if(!this->file_name.empty() && !_sync_chain){
         for(YAML::const_iterator it = this->stored_chain.begin(); it != this->stored_chain.end(); ++it){
             std::string block_name = it->first.as<std::string>();
             if(block_name.find("Block") == std::string::npos)
@@ -344,7 +344,7 @@ void BlockChain::sync_chain() {
         if(block.header.id == 0)
             continue; // * everyone should already have genesis block(block with id 0) * //
 #ifdef DEBUG
-        printf("[DEBUG] Attempting to submit block\n");
+        printf("[DEBUG] sync chain: Attempting to add block\n");
         display_block_header(block.header);
 #endif
         if(add_block(block) < 0) {
