@@ -72,13 +72,19 @@ bool verify_solution_pow(HashInput input, Blake3Hash curr_hash, Blake3Hash prev_
 
 /* TODO right now using b.header.difficulty, anyone can set arbtitrary difficulty so maybe change this? */
 bool verify_block(Block b, std::string consensus_type){
-    bool vftx = verify_transactions(b);
+    if(b.transactions.empty())
+        return true; /* empty blocks get a pass */
+    bool vfsl, vftx = verify_transactions(b);
     if(consensus_type == "pow")
-        return vftx && verify_solution_pow(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+        vfsl = verify_solution_pow(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
     else if(consensus_type == "pom")
-        return vftx && verify_solution_pom(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
+        vfsl = verify_solution_pom(b.header.input, b.header.hash, b.header.prev_hash, b.header.difficulty);
     else{
         printf("[ERROR] Invalid consensus type, can't verify block\n");
         return false;
     }
+#ifdef DEBUG
+    printf("[DEBUG] verify transactions: %b; verify solution: %b;\n", vftx, vfsl);
+#endif
+    return vftx && vfsl;
 }
