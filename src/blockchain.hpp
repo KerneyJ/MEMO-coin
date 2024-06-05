@@ -18,6 +18,7 @@ class BlockChain {
         std::string config_file;
         std::string txpool_address;
         std::string metro_address;
+        bool _sync_chain;
         std::string file_name;
         std::string consensus_type;
         std::vector<Block> blocks;
@@ -28,7 +29,9 @@ class BlockChain {
         YAML::Node stored_chain;
         bool wait;
         void load_genesis();
+        void sync_chain();
         void sync_bal(Block b);
+        int add_block(Block b, zmq::socket_t &client);
         int add_block(Block b);
         int submit_block_peer(Block b, std::string peer_addr);
         void submit_block(zmq::socket_t &client, MessageBuffer data);
@@ -37,7 +40,7 @@ class BlockChain {
         void tx_status(zmq::socket_t &client, MessageBuffer data);
         void get_num_addr(zmq::socket_t &client, MessageBuffer data);
         void get_total_coins(zmq::socket_t &client, MessageBuffer data);
-        void sync_chain(zmq::socket_t &client, MessageBuffer data);
+        void query_blocks(zmq::socket_t &client, MessageBuffer data);
         void get_metro_addr(zmq::socket_t &client, MessageBuffer data);
         void get_peer_addrs(zmq::socket_t &client, MessageBuffer data);
         void request_handler(zmq::socket_t &client, Message<MessageBuffer> request);
@@ -50,6 +53,6 @@ class BlockChain {
         void load_file(std::string file_name);
         void write_block(Block b);
     public:
-        BlockChain(std::string txpaddr, std::string metroaddr, std::string consensus_type, std::string config_file);
+        BlockChain(std::string txpaddr, std::string metroaddr, std::string consensus_type, bool sync_chain, std::string config_file);
         void start(std::string address);
 };

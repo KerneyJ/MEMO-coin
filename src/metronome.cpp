@@ -77,6 +77,7 @@ void Metronome::submit_empty_block() {
     for (int i = 0; i < empty_block.header.hash.size(); i++)
         empty_block.header.hash[i] = rand() % 255;
 
+    block_mutex.lock();
     if(submit_block(empty_block) < 0) {
 #ifdef DEBUG
         printf("Empty block rejected from blockchain.\n");
@@ -85,14 +86,13 @@ void Metronome::submit_empty_block() {
     }
 
     // update last solved block state
-    block_mutex.lock();
     prev_solved_time = curr_solved_time;
     curr_solved_time = empty_block.header.timestamp;
     last_block = empty_block;
     block_mutex.unlock();
 }
 /*
-void Metronome::sync_chain() {
+void sync_chain() {
     zmq::context_t& context = server.get_context();
     zmq::socket_t blockchain_req(context, ZMQ_REQ);
     zmq::socket_t peer_req(context, ZMQ_REQ);
@@ -109,7 +109,7 @@ void Metronome::sync_chain() {
 
     // * get vector of blocks from blockchain node * //
     peer_req.connect(peer);
-    send_message(peer_req, SYNC_CHAIN);
+    send_message(peer_req, QUERY_BLOCKS);
     auto res2 = recv_message<std::vector<Block>>(peer_req);
     if(res2.header.type != STATUS_GOOD) {
         printf("[ERROR] received non good status when synching with peer %s\n", peer.c_str());
@@ -184,7 +184,7 @@ Block Metronome::request_last_block() {
 }
 
 void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
-    /* std::unique_lock<std::mutex> lock(block_mutex); */
+    std::unique_lock<std::mutex> lock(block_mutex);
     auto block = deserialize_payload<Block>(data);
 
     /* TODO check other conditions
@@ -233,13 +233,11 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     }
 
     /* Notify block timer a solution has been accepted */
-    block_mutex.lock();
     prev_solved_time = curr_solved_time;
     curr_solved_time = block.header.timestamp;
     last_block = block;
     sleeping = false;
     block_timer.notify_one();
-    block_mutex.unlock();
     /* send_message(client, STATUS_GOOD); */
 }
 
