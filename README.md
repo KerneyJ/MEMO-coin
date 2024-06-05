@@ -24,10 +24,7 @@ Download, build, and install Alpaca
 ```
 git clone --recurse-submodules https://github.com/p-ranav/alpaca
 cd alpaca
-cmake -DALPACA_BUILD_TESTS=on \
-      -DALPACA_BUILD_BENCHMARKS=on \
-      -DALPACA_BUILD_SAMPLES=on \
-      -DCMAKE_BUILD_TYPE=Releasei
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ./test/tests
 make install
