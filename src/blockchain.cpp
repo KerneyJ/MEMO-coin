@@ -341,6 +341,9 @@ void BlockChain::sync_chain() {
     send_message(requester, QUERY_BLOCKS);
     auto response = recv_message<std::vector<Block>>(requester);
     std::vector<Block> recv_blocks = response.data;
+#ifdef DEBUG
+    printf("[DEBUG] Received %lu blocks\n", recv_blocks.size());
+#endif
     for(int i = 0; i < recv_blocks.size(); i++){
         Block block = recv_blocks[i];
         if(block.header.id == 0)
@@ -479,7 +482,7 @@ void BlockChain::request_handler(zmq::socket_t &client, Message<MessageBuffer> r
 #ifdef DEBUG
             printf("[DEBUG] GET_PEER_ADDRS\n");
 #endif
-            return get_peer_addrs(client, request.data);
+            return get_peer_addrs(client, request.data); /* TODO discover? */
         default:
             throw std::runtime_error("Unknown message type.");
     }

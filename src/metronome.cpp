@@ -10,13 +10,15 @@
 #include "messages.hpp"
 #include "transaction.hpp"
 #include "utils.hpp"
+#include "keys.hpp"
 
 Metronome::Metronome(std::string _blockchain, std::string _consensus_type) {
     blockchains.push_back(_blockchain);
     consensus_type = _consensus_type;
-    difficulty = MIN_DIFFICULTY;
+    /* difficulty = MIN_DIFFICULTY; */
     sleeping = true;
     last_block = request_last_block();
+    difficulty = last_block.header.difficulty;
     display_block_header(last_block.header);
     active_validators = 0;
 }
@@ -77,19 +79,21 @@ void Metronome::submit_empty_block() {
     for (int i = 0; i < empty_block.header.hash.size(); i++)
         empty_block.header.hash[i] = rand() % 255;
 
+#ifdef DEBUG
+    printf("[DEBUG] Created empty block, aquiring block lock\n");
+#endif
+
     block_mutex.lock();
     if(submit_block(empty_block) < 0) {
-#ifdef DEBUG
-        printf("Empty block rejected from blockchain.\n");
-#endif
+        printf("[ERROR] Empty block rejected from blockchain.\n");
         return;
     }
-
     // update last solved block state
+    last_block = empty_block;
     prev_solved_time = curr_solved_time;
     curr_solved_time = empty_block.header.timestamp;
-    last_block = empty_block;
     block_mutex.unlock();
+    display_block(last_block);
 }
 /*
 void sync_chain() {
@@ -185,8 +189,8 @@ Block Metronome::request_last_block() {
     return response.data;
 }
 
+/* TODO sharding? */
 void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
-    std::unique_lock<std::mutex> lock(block_mutex);
     auto block = deserialize_payload<Block>(data);
 
     /* TODO check other conditions
@@ -197,14 +201,20 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
     if(!verify_block(block, consensus_type)){
         printf("[WARN] verify_block returned false, rejecting block\n");
         send_message(client, STATUS_BAD);
+        return;
     }
     else if(block.transactions.empty()){
 #ifdef DEBUG
-        printf("[DEBUG] received empty block\n");
+        printf("[DEBUG] received empty block hash: %s; last block: %s\n",
+                base58_encode_key(block.header.hash).c_str(),
+                base58_encode_key(last_block.header.hash).c_str());
 #endif
         send_message(client, STATUS_GOOD);
+
+            return;
+        }
     }
-    else if(block.header.id == last_block.header.id && last_block.transactions.empty()){
+    else if(block.header.id == last_block.header.id){
         /* replace last_block with block */
 #ifdef DEBUG
         printf("[DEBUG] Received a block that has same id as last block\n");
@@ -222,6 +232,7 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
             printf("[DEBUG] TODO got blocks of equal id\n");
 #endif
             send_message(client, STATUS_BAD);
+            return;
         }
     }
     else if(block.header.id == last_block.header.id + 1){
@@ -232,14 +243,17 @@ void Metronome::handle_block(zmq::socket_t &client, MessageBuffer data) {
         printf("[ERROR] block id not equal to last block id or last bloc id + 1\n");
         printf("\t\t last block id: %lu; received block id: %lu\n", last_block.header.id, block.header.id);
         send_message(client, STATUS_BAD);
+        return;
     }
 
     /* Notify block timer a solution has been accepted */
+    block_mutex.lock();
     prev_solved_time = curr_solved_time;
     curr_solved_time = block.header.timestamp;
     last_block = block;
     sleeping = false;
     block_timer.notify_one();
+    block_mutex.unlock();
     /* send_message(client, STATUS_GOOD); */
 }
 

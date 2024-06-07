@@ -74,7 +74,7 @@ void TxPool::pop_transactions(zmq::socket_t &client, MessageBuffer data) {
 
 void TxPool::confirm_transactions(zmq::socket_t &client, MessageBuffer data) {
     std::unique_lock<std::mutex> lock(tx_lock);
-
+    /* TODO IMPORT METRONOME VERIFICATION LOGIC */
     auto block = deserialize_payload<Block>(data);
     auto confirmed_set = TransactionSet(block.transactions.begin(), block.transactions.end());
 
